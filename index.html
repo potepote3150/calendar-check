@@ -310,9 +310,9 @@
       justify-content: flex-start;
       padding: 2px 6px;
       margin: 0;
-      border-radius: 999px;      /* 丸いタグ風 */
-      border: 1px solid #d1d5db; /* 枠線 */
-      background: #f9fafb;       /* うっすら背景 */
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
       font-size: 0.85rem;
       flex: 0 0 auto;
       cursor: pointer;
@@ -588,8 +588,10 @@
     let currentUserId = null;
     let currentPin = null; // パスワード
 
-    // ログインしていないときのアラートを連発しないためのフラグ
     let loginHintShown = false;
+
+    // ローカルセッション保持用キー
+    const SESSION_KEY = "calendarCheckSession";
 
     function showLoginRequiredHint() {
       if (!loginHintShown) {
@@ -666,6 +668,78 @@
       ensureDefaultMarksIfEmpty();
       renderMarkSettingsUI();
       showView("marks");
+    }
+
+    // ===== ローカルセッション操作 =====
+    function saveSessionToLocal() {
+      try {
+        if (!currentUserId || !currentPin) {
+          localStorage.removeItem(SESSION_KEY);
+          return;
+        }
+        const obj = { userId: currentUserId, pin: currentPin };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(obj));
+      } catch (e) {
+        console.warn("localStorage セッション保存でエラー", e);
+      }
+    }
+
+    function clearSessionFromLocal() {
+      try {
+        localStorage.removeItem(SESSION_KEY);
+      } catch (e) {
+        console.warn("localStorage セッション削除でエラー", e);
+      }
+    }
+
+    function tryAutoLoginFromLocal() {
+      let raw;
+      try {
+        raw = localStorage.getItem(SESSION_KEY);
+      } catch (e) {
+        console.warn("localStorage 取得に失敗", e);
+        return;
+      }
+      if (!raw) return;
+
+      let info;
+      try {
+        info = JSON.parse(raw);
+      } catch (e) {
+        clearSessionFromLocal();
+        return;
+      }
+      if (!info || !info.userId || !info.pin) {
+        clearSessionFromLocal();
+        return;
+      }
+
+      const userId = info.userId;
+      const pin = info.pin;
+
+      const docRef = db.collection("users").doc(userId);
+      docRef.get().then((snap) => {
+        if (!snap.exists) {
+          clearSessionFromLocal();
+          return;
+        }
+        const data = snap.data();
+        if (!data.pin || data.pin !== pin) {
+          clearSessionFromLocal();
+          return;
+        }
+
+        currentUserId = userId;
+        currentPin = data.pin;
+        loginHintShown = false;
+        loadUserStateFromData(data, docRef);
+        ensureDefaultMarksIfEmpty();
+        updateLoginStatusUI();
+        showMainView();
+        renderCalendar();
+      }).catch((e) => {
+        console.error("自動ログインに失敗しました", e);
+      });
     }
 
     // ===== ユーザー状態のロード =====
@@ -766,6 +840,7 @@
         currentUserId = userId;
         currentPin = pin;
         loginHintShown = false;
+        saveSessionToLocal();   // ★ セッション保存
         updateLoginStatusUI();
         showMainView();
         renderCalendar();
@@ -806,6 +881,7 @@
         loginHintShown = false;
         loadUserStateFromData(data, docRef);
         ensureDefaultMarksIfEmpty();
+        saveSessionToLocal();   // ★ セッション保存
         updateLoginStatusUI();
         showMainView();
         renderCalendar();
@@ -828,6 +904,7 @@
       mainMarkId = null;
       subMarkIds = {};
       loginHintShown = false;
+      clearSessionFromLocal(); // ★ セッション削除
 
       const userIdInput = document.getElementById("userIdInput");
       const pinInput = document.getElementById("pinInput");
@@ -909,6 +986,7 @@
         currentUserId = targetUserId;
         currentPin = targetPin;
         loginHintShown = false;
+        saveSessionToLocal();   // ★ セッション更新
         updateLoginStatusUI();
         clearAccountInputs();
         showMainView();
@@ -954,6 +1032,7 @@
         currentUserId = null;
         currentPin = null;
         loginHintShown = false;
+        clearSessionFromLocal(); // ★ セッション削除
 
         const userIdInput = document.getElementById("userIdInput");
         const pinInput = document.getElementById("pinInput");
@@ -1186,7 +1265,7 @@
         iconSpan.textContent = def.icon || "?";
         if (def.color) iconSpan.style.color = def.color;
         const labelSpan = document.createElement("span");
-        labelSpan.textContent = `サブ${i}`;
+        labelSpan.textContent = "サブ" + i;
         btn.appendChild(iconSpan);
         btn.appendChild(labelSpan);
         markMenu.appendChild(btn);
@@ -1666,10 +1745,14 @@
       currentYear = now.getFullYear();
       currentMonth = now.getMonth();
       loginHintShown = false;
-      updateLoginStatusUI();
+
       setupLoginUI();
       showMainView();
       renderCalendar();
+      updateLoginStatusUI();
+
+      // ローカルセッションから自動ログイン
+      tryAutoLoginFromLocal();
     }
 
     document.addEventListener("DOMContentLoaded", init);

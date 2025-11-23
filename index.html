@@ -450,7 +450,6 @@
 
       <h3>サブ（長押し / 右クリック）</h3>
       <div class="field-row" style="flex-direction:column; gap:4px;">
-        <!-- サブ1〜10 -->
         <div>
           <label for="subMarkSelect1">サブ1</label>
           <select id="subMarkSelect1"></select>
@@ -501,10 +500,14 @@
       </div>
 
       <h3>追加されたマーク</h3>
+      <p style="font-size:0.8rem; color:#6b7280; margin:4px 0 2px;">
+        削除したいマークにチェックを入れて「選択したマークを削除」を押してください。
+      </p>
       <div id="unusedMarksList" class="unused-marks"></div>
 
-      <div class="btn-row" style="margin-top:8px;">
+      <div class="btn-row" style="margin-top:8px; flex-wrap:wrap;">
         <button id="markSaveBtn" class="btn-primary-small">設定を保存</button>
+        <button id="deleteMarksBtn" class="btn-danger-small">選択したマークを削除</button>
         <button id="markBackBtn" class="btn-secondary-small">戻る</button>
       </div>
 
@@ -697,20 +700,19 @@
       }
     }
 
-    // ===== 保存 =====
+    // ===== 保存（完全上書き） =====
     function saveUserStateToCloud() {
       if (!currentUserId || !currentPin) return;
       const docRef = db.collection("users").doc(currentUserId);
-      docRef.set(
-        {
-          pin: currentPin,
-          marks,
-          markDefinitions,
-          mainMarkId,
-          subMarkIds
-        },
-        { merge: true }
-      ).catch((e) => console.error("saveUserStateToCloud error", e));
+
+      // merge を使わず、pin / marks / markDefinitions / mainMarkId / subMarkIds を丸ごと上書き
+      docRef.set({
+        pin: currentPin,
+        marks,
+        markDefinitions,
+        mainMarkId,
+        subMarkIds
+      }).catch((e) => console.error("saveUserStateToCloud error", e));
     }
 
     // ===== 新規登録 =====
@@ -1187,7 +1189,6 @@
       markMenu.appendChild(clearBtn);
 
       if (!hasSub) {
-        // サブが1つもないときは、軽く説明を出す
         const info = document.createElement("div");
         info.style.fontSize = "0.75rem";
         info.style.color = "#6b7280";
@@ -1328,6 +1329,7 @@
       ph.value = "";
       ph.textContent = "選択してください";
       mainSelect.appendChild(ph);
+
       allIds.forEach((id) => {
         const def = markDefinitions[id];
         const opt = document.createElement("option");
@@ -1369,7 +1371,7 @@
         }
       }
 
-      // 追加されたマーク（どこにも割り当てられていないID）
+      // 追加されたマーク（メイン・サブに使われていないもの）
       unusedList.innerHTML = "";
       const used = new Set();
       if (mainMarkId) used.add(mainMarkId);
@@ -1378,6 +1380,7 @@
       });
 
       const unusedIds = allIds.filter((id) => !used.has(id));
+
       if (unusedIds.length === 0) {
         const msg = document.createElement("span");
         msg.textContent = "未割り当てのマークはありません。";
@@ -1387,14 +1390,24 @@
       } else {
         unusedIds.forEach((id) => {
           const def = markDefinitions[id];
-          const item = document.createElement("div");
-          item.className = "unused-mark-item";
+
+          const label = document.createElement("label");
+          label.className = "unused-mark-item";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.dataset.markId = id;
+
           const iconSpan = document.createElement("span");
           iconSpan.className = "unused-mark-icon";
           iconSpan.textContent = def.icon || "?";
-          if (def.color) iconSpan.style.color = def.color;
-          item.appendChild(iconSpan);
-          unusedList.appendChild(item);
+          if (def.color) {
+            iconSpan.style.color = def.color;
+          }
+
+          label.appendChild(checkbox);
+          label.appendChild(iconSpan);
+          unusedList.appendChild(label);
         });
       }
     }
@@ -1415,20 +1428,24 @@
 
       const addMarkBtn = document.getElementById("addMarkBtn");
       const markSaveBtn = document.getElementById("markSaveBtn");
+      const deleteMarksBtn = document.getElementById("deleteMarksBtn");
       const markBackBtn = document.getElementById("markBackBtn");
 
+      // 新規登録
       registerBtn.addEventListener("click", () => {
         const userId = userIdInput.value.trim();
         const pin = pinInput.value.trim();
         registerUser(userId, pin);
       });
 
+      // ログイン
       loginBtn.addEventListener("click", () => {
         const userId = userIdInput.value.trim();
         const pin = pinInput.value.trim();
         loginUser(userId, pin);
       });
 
+      // 歯車メニュー
       if (settingsBtn && settingsMenu) {
         settingsBtn.addEventListener("click", (ev) => {
           if (!currentUserId) {
@@ -1464,6 +1481,7 @@
         });
       }
 
+      // アカウント変更・削除
       if (changeSaveBtn) {
         changeSaveBtn.addEventListener("click", () => {
           updateAccountInfo();
@@ -1485,23 +1503,27 @@
         });
       }
 
+      // マーク追加
       if (addMarkBtn) {
         addMarkBtn.addEventListener("click", () => {
           const iconInput = document.getElementById("newMarkIconInput");
           const colorInput = document.getElementById("newMarkColorInput");
           const icon = iconInput.value.trim();
           const color = colorInput.value || "#111827";
+
           if (!icon) {
             alert("表示する記号・絵文字を入力してください");
             return;
           }
-          // 既存と同じ見た目（icon + color）は追加しない
+
+          // 同じ見た目（icon+color）があれば拒否
           for (const def of Object.values(markDefinitions)) {
             if (def.icon === icon && (def.color || "#111827") === color) {
               alert("同じ見た目のマークが既に存在します。");
               return;
             }
           }
+
           const id = generateMarkId();
           markDefinitions[id] = { icon, color };
           iconInput.value = "";
@@ -1509,6 +1531,7 @@
         });
       }
 
+      // マーク設定の保存
       if (markSaveBtn) {
         markSaveBtn.addEventListener("click", () => {
           const mainSelect = document.getElementById("mainMarkSelect");
@@ -1536,7 +1559,7 @@
             }
           }
 
-          // メイン＆サブに同じマークIDが複数入っていたらエラー
+          // メイン＋サブに同じIDが入っていたらNG
           const idSet = new Set(usedIds);
           if (idSet.size !== usedIds.length) {
             alert("メインやサブに同じマークを複数登録することはできません。");
@@ -1549,6 +1572,53 @@
           showMainView();
           renderCalendar();
           alert("マーク設定を保存しました");
+        });
+      }
+
+      // 一括削除ボタン
+      if (deleteMarksBtn) {
+        deleteMarksBtn.addEventListener("click", () => {
+          const list = document.getElementById("unusedMarksList");
+          if (!list) return;
+
+          const checked = list.querySelectorAll('input[type="checkbox"][data-mark-id]:checked');
+          if (!checked.length) {
+            alert("削除したいマークにチェックを入れてください");
+            return;
+          }
+
+          const idsToDelete = Array.from(checked).map((cb) => cb.dataset.markId);
+          const idsSet = new Set(idsToDelete);
+
+          // 何日分影響するかカウント
+          let affectedCount = 0;
+          for (const key in marks) {
+            if (idsSet.has(marks[key])) {
+              affectedCount++;
+            }
+          }
+
+          let msg = "選択したマークを削除します。";
+          if (affectedCount > 0) {
+            msg += `\n\n※カレンダー上でこれらのマークが使われている日（${affectedCount} 日分）は空白に戻ります。`;
+          }
+          if (!confirm(msg)) return;
+
+          // カレンダーからも削除（空白に戻す）
+          for (const key in marks) {
+            if (idsSet.has(marks[key])) {
+              delete marks[key];
+            }
+          }
+
+          // マーク定義を削除
+          idsToDelete.forEach((id) => {
+            delete markDefinitions[id];
+          });
+
+          saveUserStateToCloud();
+          renderMarkSettingsUI();
+          renderCalendar();
         });
       }
 

@@ -297,24 +297,33 @@
       font-size: 0.85rem;
     }
 
+    /* 追加されたマーク表示（枠つき・コンパクト） */
     .unused-marks {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
+      gap: 4px;
+      align-items: center;
     }
     .unused-mark-item {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #f3f4f6;
-      font-size: 0.8rem;
+      justify-content: flex-start;
+      padding: 2px 6px;
+      margin: 0;
+      border-radius: 999px;      /* 丸いタグ風 */
+      border: 1px solid #d1d5db; /* 枠線 */
+      background: #f9fafb;       /* うっすら背景 */
+      font-size: 0.85rem;
+      flex: 0 0 auto;
+      cursor: pointer;
+    }
+    .unused-mark-item input {
+      margin: 0 3px 0 0;
     }
     .unused-mark-icon {
       font-size: 1rem;
       line-height: 1;
+      margin: 0;
     }
 
     .mark-menu {
@@ -659,7 +668,7 @@
       showView("marks");
     }
 
-    // ===== ユーザー状態のロード（旧データからの移行も含む） =====
+    // ===== ユーザー状態のロード =====
     function loadUserStateFromData(data, docRef) {
       let needMigration = false;
 
@@ -710,7 +719,7 @@
       }
     }
 
-    // ===== 保存（完全上書き） =====
+    // ===== 保存 =====
     function saveUserStateToCloud() {
       if (!currentUserId || !currentPin) return;
       const docRef = db.collection("users").doc(currentUserId);
@@ -725,7 +734,7 @@
     }
 
     // ===== 新規登録 =====
-    function registerUser(userId, pin) {
+    async function registerUser(userId, pin) {
       if (!userId || !pin) {
         alert("ユーザーIDとパスワードを両方入力してね");
         return;
@@ -733,28 +742,27 @@
 
       const docRef = db.collection("users").doc(userId);
 
-      docRef.get().then((snap) => {
+      try {
+        const snap = await docRef.get();
         if (snap.exists) {
           alert("そのユーザーIDは既に登録されています。別のIDを使ってください。");
           return;
         }
+
         const base = getDefaultMarkSetup();
         marks = {};
         markDefinitions = base.defs;
         mainMarkId = base.mainId;
         subMarkIds = base.subs;
 
-        return docRef.set({
+        await docRef.set({
           pin: pin,
           marks: marks,
           markDefinitions: markDefinitions,
           mainMarkId: mainMarkId,
           subMarkIds: subMarkIds
         });
-      }).then((result) => {
-        if (result === undefined) {
-          return; // 既に存在していた場合
-        }
+
         currentUserId = userId;
         currentPin = pin;
         loginHintShown = false;
@@ -762,11 +770,12 @@
         showMainView();
         renderCalendar();
         clearAccountInputs();
+
         alert("新規登録が完了し、このIDでログインしました！");
-      }).catch((e) => {
+      } catch (e) {
         console.error(e);
         alert("新規登録でエラーが発生しました");
-      });
+      }
     }
 
     // ===== ログイン =====
@@ -1073,7 +1082,7 @@
     }
 
     function toggleMainMarkOnDate(key) {
-      if (!currentUserId) return; // ガード
+      if (!currentUserId) return;
       ensureDefaultMarksIfEmpty();
       if (!mainMarkId || !markDefinitions[mainMarkId]) {
         alert("メインマークが設定されていません。設定画面から登録してください。");
@@ -1082,21 +1091,20 @@
 
       const current = marks[key];
       if (current) {
-        delete marks[key];        // 何か付いていたら空白に戻す
+        delete marks[key];
       } else {
-        marks[key] = mainMarkId;  // 何もなければメインマークをセット
+        marks[key] = mainMarkId;
       }
       saveUserStateToCloud();
     }
 
-    // ===== タップ / 長押し（pointer ベース） =====
+    // ===== タップ / 長押し =====
     function attachPressHandlers(cell, key) {
       let pressTimer = null;
 
       cell.addEventListener("pointerdown", (ev) => {
         if (cell.classList.contains("empty")) return;
 
-        // ログインしていないときは1回だけ注意を出す
         if (!currentUserId) {
           if (ev.pointerType === "mouse" || ev.pointerType === "touch" || ev.pointerType === "pen") {
             showLoginRequiredHint();
@@ -1104,7 +1112,6 @@
           return;
         }
 
-        // 右クリックは即サブマークメニュー
         if (ev.button === 2) {
           ev.preventDefault();
           openMarkMenuForCell(cell, key);
@@ -1164,7 +1171,6 @@
       markMenu.innerHTML = "";
       ensureDefaultMarksIfEmpty();
 
-      // サブ1〜10で設定されているものだけ出す
       let hasSub = false;
       for (let i = 1; i <= 10; i++) {
         const id = subMarkIds[String(i)];
@@ -1186,7 +1192,6 @@
         markMenu.appendChild(btn);
       }
 
-      // 「マークを消す」は必ず置く
       const clearBtn = document.createElement("button");
       clearBtn.dataset.markId = "none";
       const cIcon = document.createElement("span");
@@ -1325,6 +1330,26 @@
       return "m" + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
     }
 
+    function applyColorToSelect(selectEl) {
+      const val = selectEl.value;
+      if (val && markDefinitions[val]) {
+        const def = markDefinitions[val];
+        const color = def.color || "#111827";
+        selectEl.style.color = color;
+      } else {
+        selectEl.style.color = "#111827";
+      }
+    }
+
+    function updateAllMarkSelectColors() {
+      const mainSelect = document.getElementById("mainMarkSelect");
+      if (mainSelect) applyColorToSelect(mainSelect);
+      for (let i = 1; i <= 10; i++) {
+        const sel = document.getElementById("subMarkSelect" + i);
+        if (sel) applyColorToSelect(sel);
+      }
+    }
+
     function renderMarkSettingsUI() {
       ensureDefaultMarksIfEmpty();
 
@@ -1333,7 +1358,6 @@
 
       const allIds = Object.keys(markDefinitions);
 
-      // メイン
       mainSelect.innerHTML = "";
       const ph = document.createElement("option");
       ph.value = "";
@@ -1354,7 +1378,6 @@
         mainSelect.value = mainMarkId;
       }
 
-      // サブ1〜10
       for (let i = 1; i <= 10; i++) {
         const sel = document.getElementById("subMarkSelect" + i);
         if (!sel) continue;
@@ -1381,7 +1404,6 @@
         }
       }
 
-      // 追加されたマーク（メイン・サブに使われていないもの）
       unusedList.innerHTML = "";
       const used = new Set();
       if (mainMarkId) used.add(mainMarkId);
@@ -1420,6 +1442,8 @@
           unusedList.appendChild(label);
         });
       }
+
+      updateAllMarkSelectColors();
     }
 
     // ===== ログインUI & 設定UIセットアップ =====
@@ -1441,21 +1465,18 @@
       const deleteMarksBtn = document.getElementById("deleteMarksBtn");
       const markBackBtn = document.getElementById("markBackBtn");
 
-      // 新規登録
       registerBtn.addEventListener("click", () => {
         const userId = userIdInput.value.trim();
         const pin = pinInput.value.trim();
         registerUser(userId, pin);
       });
 
-      // ログイン
       loginBtn.addEventListener("click", () => {
         const userId = userIdInput.value.trim();
         const pin = pinInput.value.trim();
         loginUser(userId, pin);
       });
 
-      // 歯車メニュー
       if (settingsBtn && settingsMenu) {
         settingsBtn.addEventListener("click", (ev) => {
           if (!currentUserId) {
@@ -1491,7 +1512,6 @@
         });
       }
 
-      // アカウント変更・削除
       if (changeSaveBtn) {
         changeSaveBtn.addEventListener("click", () => {
           updateAccountInfo();
@@ -1513,7 +1533,6 @@
         });
       }
 
-      // マーク追加
       if (addMarkBtn) {
         addMarkBtn.addEventListener("click", () => {
           const iconInput = document.getElementById("newMarkIconInput");
@@ -1526,7 +1545,6 @@
             return;
           }
 
-          // 同じ見た目（icon+color）があれば拒否
           for (const def of Object.values(markDefinitions)) {
             if (def.icon === icon && (def.color || "#111827") === color) {
               alert("同じ見た目のマークが既に存在します。");
@@ -1541,7 +1559,6 @@
         });
       }
 
-      // マーク設定の保存
       if (markSaveBtn) {
         markSaveBtn.addEventListener("click", () => {
           const mainSelect = document.getElementById("mainMarkSelect");
@@ -1569,7 +1586,6 @@
             }
           }
 
-          // メイン＋サブに同じIDが入っていたらNG
           const idSet = new Set(usedIds);
           if (idSet.size !== usedIds.length) {
             alert("メインやサブに同じマークを複数登録することはできません。");
@@ -1585,7 +1601,6 @@
         });
       }
 
-      // 一括削除ボタン
       if (deleteMarksBtn) {
         deleteMarksBtn.addEventListener("click", () => {
           const list = document.getElementById("unusedMarksList");
@@ -1600,7 +1615,6 @@
           const idsToDelete = Array.from(checked).map((cb) => cb.dataset.markId);
           const idsSet = new Set(idsToDelete);
 
-          // 何日分影響するかカウント
           let affectedCount = 0;
           for (const key in marks) {
             if (idsSet.has(marks[key])) {
@@ -1614,14 +1628,12 @@
           }
           if (!confirm(msg)) return;
 
-          // カレンダーからも削除（空白に戻す）
           for (const key in marks) {
             if (idsSet.has(marks[key])) {
               delete marks[key];
             }
           }
 
-          // マーク定義を削除
           idsToDelete.forEach((id) => {
             delete markDefinitions[id];
           });
@@ -1635,6 +1647,15 @@
       if (markBackBtn) {
         markBackBtn.addEventListener("click", () => {
           showMainView();
+        });
+      }
+
+      const markSettingsView = document.getElementById("markSettingsView");
+      if (markSettingsView) {
+        markSettingsView.addEventListener("change", (ev) => {
+          if (ev.target.tagName === "SELECT") {
+            applyColorToSelect(ev.target);
+          }
         });
       }
     }

@@ -22,6 +22,7 @@
       padding: 16px;
     }
     .app {
+      position: relative;
       width: 100%;
       max-width: 480px;
       background: #ffffff;
@@ -29,6 +30,55 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
       padding: 16px;
     }
+
+    /* 歯車ボタン＆メニュー */
+    .settings-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: none;
+      background: #e5e7eb;
+      display: none; /* ログイン時に表示 */
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .settings-btn:active {
+      transform: translateY(1px);
+    }
+    .settings-menu {
+      position: absolute;
+      top: 40px;
+      right: 8px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      padding: 6px;
+      display: none;
+      z-index: 1001;
+      min-width: 180px;
+    }
+    .settings-menu button {
+      width: 100%;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font-size: 0.8rem;
+      padding: 6px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .settings-menu button:hover {
+      background: #f3f4f6;
+    }
+    .settings-menu button.danger {
+      color: #b91c1c;
+    }
+
     header {
       text-align: center;
       margin-bottom: 8px;
@@ -100,6 +150,7 @@
       justify-content: flex-start;
       transition: background 0.1s ease, transform 0.05s ease;
       user-select: none;
+      touch-action: manipulation;
     }
     .day:active {
       transform: scale(0.97);
@@ -116,71 +167,11 @@
       font-size: 1.1rem;
       line-height: 1;
     }
-    .mark-check { color: #16a34a; }
-    .mark-circle { color: #ef4444; }
-    .mark-double { color: #f97316; }
     .today {
       outline: 2px solid #3b82f6;
       outline-offset: -2px;
       background: #eff6ff;
     }
-    .legend {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-      font-size: 0.75rem;
-      flex-wrap: wrap;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .legend-icon {
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-    }
-    .legend-icon.check { color: #16a34a; }
-    .legend-icon.circle { color: #ef4444; }
-    .legend-icon.double { color: #f97316; }
-
-    .mark-menu {
-      position: fixed;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      padding: 8px;
-      display: none;
-      flex-direction: column;
-      min-width: 140px;
-      z-index: 999;
-    }
-    .mark-menu button {
-      border: none;
-      background: transparent;
-      padding: 6px 8px;
-      text-align: left;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      border-radius: 8px;
-      width: 100%;
-    }
-    .mark-menu button:hover {
-      background: #f3f4f6;
-    }
-    .mark-menu button span.icon { font-size: 1rem; }
-    .mark-menu button[data-mark="check"] span.icon { color: #16a34a; }
-    .mark-menu button[data-mark="circle"] span.icon { color: #ef4444; }
-    .mark-menu button[data-mark="double"] span.icon { color: #f97316; }
-    .mark-menu button[data-mark="none"] span.icon { color: #9ca3af; }
 
     .hint {
       margin-top: 8px;
@@ -243,6 +234,119 @@
       background: #3b82f6;
       color: #ffffff;
     }
+
+    .subview {
+      margin-top: 8px;
+      font-size: 0.85rem;
+    }
+    .subview h2 {
+      font-size: 1rem;
+      margin: 0 0 8px;
+      text-align: center;
+    }
+    .subview h3 {
+      font-size: 0.9rem;
+      margin: 8px 0 4px;
+    }
+    .subview .field-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .subview input,
+    .subview select {
+      flex: 1;
+      min-width: 160px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+    }
+    .subview .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .btn-primary-small {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: none;
+      background: #3b82f6;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-secondary-small {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: none;
+      background: #e5e7eb;
+      color: #111827;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-danger-small {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: none;
+      background: #ef4444;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .unused-marks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .unused-mark-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      font-size: 0.8rem;
+    }
+    .unused-mark-icon {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .mark-menu {
+      position: fixed;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      min-width: 160px;
+      z-index: 999;
+      font-size: 0.85rem;
+    }
+    .mark-menu button {
+      border: none;
+      background: transparent;
+      padding: 6px 8px;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border-radius: 8px;
+      width: 100%;
+    }
+    .mark-menu button:hover {
+      background: #f3f4f6;
+    }
+    .mark-menu button span.icon {
+      font-size: 1rem;
+    }
   </style>
 
   <!-- Firebase（compat版） -->
@@ -251,96 +355,169 @@
 </head>
 <body>
   <div class="app">
-    <!-- ログインパネル -->
-    <div class="login-panel" style="margin-bottom: 12px; font-size: 0.85rem;">
-      <div style="display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap;">
-        <input id="userIdInput" placeholder="ユーザーID"
-               style="flex:1; min-width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-        <input id="pinInput" placeholder="パスワード" type="password"
-               style="width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-        <button id="registerBtn"
-                style="padding:4px 10px; border:none; border-radius:999px; background:#10b981; color:#fff; cursor:pointer;">
-          新規登録
-        </button>
-        <button id="loginBtn"
-                style="padding:4px 10px; border:none; border-radius:999px; background:#3b82f6; color:#fff; cursor:pointer;">
-          ログイン
-        </button>
-      </div>
-      <div id="loginStatus" style="color:#6b7280;">
-        未ログイン / まずはユーザーIDとパスワードで新規登録してください
-      </div>
+    <!-- 歯車ボタン & メニュー -->
+    <button id="settingsBtn" class="settings-btn" title="アカウント設定">⚙️</button>
+    <div id="settingsMenu" class="settings-menu">
+      <button data-action="openMarks">マーク設定</button>
+      <button data-action="openChange">アカウント情報の変更</button>
+      <button data-action="openDelete" class="danger">アカウント削除</button>
+      <button data-action="logout">ログアウト</button>
+    </div>
 
-      <!-- アカウント設定（ログイン中のみ表示） -->
-      <div id="accountSettings"
-           style="margin-top:8px; display:none; font-size:0.8rem; border-top:1px solid #e5e7eb; padding-top:8px;">
-        <div style="margin-bottom:4px; color:#4b5563;">アカウント設定（ログイン中のみ）</div>
-
-        <div style="display:flex; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
-          <input id="currentPinInput" type="password" placeholder="現在のPIN（必須）"
-                 style="flex:1; min-width:160px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-        </div>
-
-        <div style="display:flex; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
-          <input id="newUserIdInput" placeholder="新しいユーザーID（変更したいときだけ）"
+    <!-- メイン画面（カレンダー） -->
+    <div id="mainView">
+      <!-- ログインパネル -->
+      <div class="login-panel" style="margin-bottom: 12px; font-size: 0.85rem;">
+        <div style="display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap;">
+          <input id="userIdInput" placeholder="ユーザーID"
                  style="flex:1; min-width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-          <input id="newPinInput" type="password" placeholder="新しいパスワード（変更したいときだけ）"
-                 style="width:150px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-          <button id="updateAccountBtn"
-                  style="padding:4px 10px; border:none; border-radius:999px; background:#6366f1; color:#fff; cursor:pointer;">
-            変更
+          <input id="pinInput" placeholder="パスワード(数字など)" type="password"
+                 style="width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
+          <button id="registerBtn"
+                  style="padding:4px 10px; border:none; border-radius:999px; background:#10b981; color:#fff; cursor:pointer;">
+            新規登録
+          </button>
+          <button id="loginBtn"
+                  style="padding:4px 10px; border:none; border-radius:999px; background:#3b82f6; color:#fff; cursor:pointer;">
+            ログイン
           </button>
         </div>
-
-        <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">
-          <button id="deleteAccountBtn"
-                  style="padding:4px 10px; border:none; border-radius:999px; background:#ef4444; color:#fff; cursor:pointer;">
-            アカウント削除
-          </button>
-        </div>
-
-        <div style="font-size:0.7rem; color:#6b7280; margin-top:4px;">
-          ※ID変更・パスワード変更・削除を行うときは必ず「現在のパスワード」を入力してください。<br>
-          ※ユーザーIDを変更すると、今後は新しいIDでログインします。<br>
-          ※アカウント削除をすると、このユーザーIDのカレンダーデータはすべて消えます。
+        <div id="loginStatus" style="color:#6b7280;">
+          未ログイン / まずはユーザーIDとパスワードで新規登録してください
         </div>
       </div>
+
+      <header>
+        <h1>カレンダーチェック</h1>
+        <p>タップでメインマーク / 長押し or 右クリックでサブマーク選択</p>
+      </header>
+
+      <div class="calendar-header">
+        <button class="nav-btn" id="prevMonth" aria-label="前の月">‹</button>
+        <div class="month-label" id="monthLabel"></div>
+        <button class="nav-btn" id="nextMonth" aria-label="次の月">›</button>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid"></div>
+
+      <p class="hint">※ユーザーIDごとにクラウド保存されます。マークの見た目は設定画面から変更できます。</p>
     </div>
 
-    <header>
-      <h1>カレンダーチェック</h1>
-      <p>タップで緑チェック / 長押し or 右クリックでマーク選択</p>
-    </header>
-
-    <div class="calendar-header">
-      <button class="nav-btn" id="prevMonth" aria-label="前の月">‹</button>
-      <div class="month-label" id="monthLabel"></div>
-      <button class="nav-btn" id="nextMonth" aria-label="次の月">›</button>
+    <!-- アカウント変更画面 -->
+    <div id="changeView" class="subview" style="display:none;">
+      <h2>アカウント情報の変更</h2>
+      <div class="field-row">
+        <input id="changeCurrentPasswordInput" type="password" placeholder="現在のパスワード（必須）">
+      </div>
+      <div class="field-row">
+        <input id="changeNewUserIdInput" placeholder="新しいユーザーID（変更したいときだけ）">
+      </div>
+      <div class="field-row">
+        <input id="changeNewPasswordInput" type="password" placeholder="新しいパスワード（変更したいときだけ）">
+      </div>
+      <div class="btn-row">
+        <button id="changeSaveBtn" class="btn-primary-small">変更を保存</button>
+        <button id="changeBackBtn" class="btn-secondary-small">キャンセルして戻る</button>
+      </div>
+      <p class="hint">
+        ※ユーザーIDを変更すると、今後は新しいIDでログインします。
+      </p>
     </div>
 
-    <div class="calendar-grid" id="calendarGrid"></div>
-
-    <div class="legend">
-      <div class="legend-item">
-        <div class="legend-icon check">✓</div><span>チェック (緑)</span>
+    <!-- アカウント削除画面 -->
+    <div id="deleteView" class="subview" style="display:none;">
+      <h2>アカウント削除</h2>
+      <p style="font-size:0.8rem; color:#b91c1c; margin-bottom:6px;">
+        このユーザーIDのカレンダーデータはすべて削除されます。
+      </p>
+      <div class="field-row">
+        <input id="deleteCurrentPasswordInput" type="password" placeholder="現在のパスワード（必須）">
       </div>
-      <div class="legend-item">
-        <div class="legend-icon circle">○</div><span>丸 (赤)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-icon double">◎</div><span>二重丸 (オレンジ)</span>
+      <div class="btn-row">
+        <button id="deleteExecuteBtn" class="btn-danger-small">このアカウントを削除</button>
+        <button id="deleteBackBtn" class="btn-secondary-small">キャンセルして戻る</button>
       </div>
     </div>
-    <p class="hint">※ユーザーIDごとにクラウド保存されます。</p>
+
+    <!-- マーク設定画面 -->
+    <div id="markSettingsView" class="subview" style="display:none;">
+      <h2>マーク設定</h2>
+
+      <h3>メイン（タップ）</h3>
+      <div class="field-row">
+        <select id="mainMarkSelect"></select>
+      </div>
+
+      <h3>サブ（長押し / 右クリック）</h3>
+      <div class="field-row" style="flex-direction:column; gap:4px;">
+        <!-- サブ1〜10 -->
+        <div>
+          <label for="subMarkSelect1">サブ1</label>
+          <select id="subMarkSelect1"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect2">サブ2</label>
+          <select id="subMarkSelect2"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect3">サブ3</label>
+          <select id="subMarkSelect3"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect4">サブ4</label>
+          <select id="subMarkSelect4"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect5">サブ5</label>
+          <select id="subMarkSelect5"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect6">サブ6</label>
+          <select id="subMarkSelect6"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect7">サブ7</label>
+          <select id="subMarkSelect7"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect8">サブ8</label>
+          <select id="subMarkSelect8"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect9">サブ9</label>
+          <select id="subMarkSelect9"></select>
+        </div>
+        <div>
+          <label for="subMarkSelect10">サブ10</label>
+          <select id="subMarkSelect10"></select>
+        </div>
+      </div>
+
+      <h3>マークを追加</h3>
+      <div class="field-row">
+        <input id="newMarkIconInput" placeholder="表示する記号・絵文字（例：✓ / 🌸 / ⛄）">
+        <input id="newMarkColorInput" type="color" value="#16a34a" style="max-width:80px;">
+        <button id="addMarkBtn" class="btn-primary-small">マークを追加</button>
+      </div>
+
+      <h3>追加されたマーク</h3>
+      <div id="unusedMarksList" class="unused-marks"></div>
+
+      <div class="btn-row" style="margin-top:8px;">
+        <button id="markSaveBtn" class="btn-primary-small">設定を保存</button>
+        <button id="markBackBtn" class="btn-secondary-small">戻る</button>
+      </div>
+
+      <p class="hint">
+        ※メインは1つだけ設定できます。未設定のままだと、カレンダーをタップしたときにエラーになります。<br>
+        ※サブは未設定でも構いません（長押しメニューに出なくなるだけです）。<br>
+        ※同じ見た目のマークを複数作ることはできません。
+      </p>
+    </div>
   </div>
 
   <!-- マーク選択メニュー -->
-  <div class="mark-menu" id="markMenu">
-    <button data-mark="check"><span class="icon">✓</span>チェック (緑)</button>
-    <button data-mark="circle"><span class="icon">○</span>丸 (赤)</button>
-    <button data-mark="double"><span class="icon">◎</span>二重丸 (オレンジ)</button>
-    <button data-mark="none"><span class="icon">×</span>マークを消す</button>
-  </div>
+  <div class="mark-menu" id="markMenu"></div>
 
   <!-- 年月ピッカー -->
   <div class="month-picker-overlay" id="monthPickerOverlay">
@@ -385,16 +562,156 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ===== アプリ用変数 =====
-    let marks = {};
+    // ===== アプリ用状態 =====
+    let marks = {};                // "yyyy-mm-dd" -> markId
+    let markDefinitions = {};      // markId -> { icon, color }
+    let mainMarkId = null;         // タップ時に使うマークID
+    let subMarkIds = {};           // "1"〜"10" -> markId
+
     let currentYear;
     let currentMonth;
-    let longPressTimer = null;
     let longPressTriggered = false;
     const LONG_PRESS_MS = 500;
 
     let currentUserId = null;
-    let currentPin = null;
+    let currentPin = null; // パスワード
+
+    // ===== デフォルトマーク定義 =====
+    function getDefaultMarkSetup() {
+      const defs = {
+        m1: { icon: "✓", color: "#16a34a" },
+        m2: { icon: "○", color: "#ef4444" },
+        m3: { icon: "◎", color: "#f97316" }
+      };
+      const mainId = "m1";
+      const subs = { "1": "m2", "2": "m3" };
+      return { defs, mainId, subs };
+    }
+
+    function ensureDefaultMarksIfEmpty() {
+      if (!markDefinitions || Object.keys(markDefinitions).length === 0) {
+        const base = getDefaultMarkSetup();
+        markDefinitions = base.defs;
+        if (!mainMarkId) mainMarkId = base.mainId;
+        if (!subMarkIds || Object.keys(subMarkIds).length === 0) {
+          subMarkIds = base.subs;
+        }
+      }
+    }
+
+    // ===== 画面切り替え =====
+    function showView(name) {
+      const mainView = document.getElementById("mainView");
+      const changeView = document.getElementById("changeView");
+      const deleteView = document.getElementById("deleteView");
+      const markView = document.getElementById("markSettingsView");
+      const settingsMenu = document.getElementById("settingsMenu");
+
+      if (mainView) mainView.style.display = (name === "main") ? "block" : "none";
+      if (changeView) changeView.style.display = (name === "change") ? "block" : "none";
+      if (deleteView) deleteView.style.display = (name === "delete") ? "block" : "none";
+      if (markView) markView.style.display = (name === "marks") ? "block" : "none";
+      if (settingsMenu) settingsMenu.style.display = "none";
+    }
+    function showMainView() {
+      showView("main");
+    }
+    function showChangeView() {
+      if (!currentUserId) {
+        alert("先にログインしてください");
+        return;
+      }
+      clearChangeViewInputs();
+      showView("change");
+      const input = document.getElementById("changeCurrentPasswordInput");
+      if (input) input.focus();
+    }
+    function showDeleteView() {
+      if (!currentUserId) {
+        alert("先にログインしてください");
+        return;
+      }
+      clearDeleteViewInputs();
+      showView("delete");
+      const input = document.getElementById("deleteCurrentPasswordInput");
+      if (input) input.focus();
+    }
+    function showMarkSettingsView() {
+      if (!currentUserId) {
+        alert("先にログインしてください");
+        return;
+      }
+      ensureDefaultMarksIfEmpty();
+      renderMarkSettingsUI();
+      showView("marks");
+    }
+
+    // ===== ユーザー状態のロード（旧データからの移行も含む） =====
+    function loadUserStateFromData(data, docRef) {
+      let needMigration = false;
+
+      let dataMarks = data.marks || {};
+      let defs = data.markDefinitions;
+      let mainId = data.mainMarkId;
+      let subs = data.subMarkIds || {};
+
+      if (!defs) {
+        const base = getDefaultMarkSetup();
+        defs = base.defs;
+        mainId = base.mainId;
+        subs = base.subs;
+        needMigration = true;
+      }
+
+      const legacyMap = { check: "m1", circle: "m2", double: "m3" };
+      const newMarks = {};
+      let converted = false;
+
+      for (const dateKey of Object.keys(dataMarks)) {
+        const val = dataMarks[dateKey];
+        if (defs[val]) {
+          newMarks[dateKey] = val;
+        } else if (legacyMap[val]) {
+          newMarks[dateKey] = legacyMap[val];
+          converted = true;
+        }
+      }
+
+      if (converted) needMigration = true;
+
+      marks = newMarks;
+      markDefinitions = defs;
+      mainMarkId = mainId || null;
+      subMarkIds = subs || {};
+
+      if (needMigration && docRef) {
+        docRef.set(
+          {
+            marks,
+            markDefinitions,
+            mainMarkId,
+            subMarkIds
+          },
+          { merge: true }
+        ).catch((e) => console.error("migration save error", e));
+      }
+    }
+
+    // ===== 保存 =====
+    function saveUserStateToCloud() {
+      if (!currentUserId || !currentPin) return;
+      const docRef = db.collection("users").doc(currentUserId);
+      docRef.set(
+        {
+          pin: currentPin,
+          marks,
+          markDefinitions,
+          mainMarkId,
+          subMarkIds
+        },
+        { merge: true }
+      ).catch((e) => console.error("saveUserStateToCloud error", e));
+    }
 
     // ===== 新規登録 =====
     function registerUser(userId, pin) {
@@ -410,18 +727,27 @@
           alert("そのユーザーIDは既に登録されています。別のIDを使ってください。");
           return;
         }
+        const base = getDefaultMarkSetup();
+        marks = {};
+        markDefinitions = base.defs;
+        mainMarkId = base.mainId;
+        subMarkIds = base.subs;
+
         return docRef.set({
           pin: pin,
-          marks: {}
+          marks: marks,
+          markDefinitions: markDefinitions,
+          mainMarkId: mainMarkId,
+          subMarkIds: subMarkIds
         });
       }).then((result) => {
         if (result === undefined) {
-          return; // 既存IDだった場合
+          return; // 既に存在していた場合
         }
-        marks = {};
         currentUserId = userId;
         currentPin = pin;
         updateLoginStatusUI();
+        showMainView();
         renderCalendar();
         clearAccountInputs();
         alert("新規ユーザーとして登録しました！");
@@ -450,14 +776,16 @@
           return;
         }
         if (data.pin !== pin) {
-          alert("パスワード が違います");
+          alert("パスワードが違います");
           return;
         }
 
-        marks = data.marks || {};
         currentUserId = userId;
-        currentPin = pin;
+        currentPin = data.pin;
+        loadUserStateFromData(data, docRef);
+        ensureDefaultMarksIfEmpty();
         updateLoginStatusUI();
+        showMainView();
         renderCalendar();
         clearAccountInputs();
         alert("ログインしました！");
@@ -467,27 +795,51 @@
       });
     }
 
-    // ===== アカウント情報更新（ID / パスワード変更） =====
+    // ===== ログアウト =====
+    function logoutUser() {
+      if (!currentUserId) return;
+
+      currentUserId = null;
+      currentPin = null;
+      marks = {};
+      markDefinitions = {};
+      mainMarkId = null;
+      subMarkIds = {};
+
+      const userIdInput = document.getElementById("userIdInput");
+      const pinInput = document.getElementById("pinInput");
+      if (userIdInput) userIdInput.value = "";
+      if (pinInput) pinInput.value = "";
+
+      clearAccountInputs();
+      updateLoginStatusUI();
+      showMainView();
+      renderCalendar();
+
+      alert("ログアウトしました");
+    }
+
+    // ===== アカウント情報更新 =====
     async function updateAccountInfo() {
       if (!currentUserId) {
         alert("先にログインしてください");
         return;
       }
 
-      const currentPinInput = document.getElementById("currentPinInput");
-      const newUserIdInput = document.getElementById("newUserIdInput");
-      const newPinInput = document.getElementById("newPinInput");
+      const currentPinInput = document.getElementById("changeCurrentPasswordInput");
+      const newUserIdInput = document.getElementById("changeNewUserIdInput");
+      const newPinInput = document.getElementById("changeNewPasswordInput");
 
-      const currentPinValue = currentPinInput.value.trim();
-      const newUserIdRaw = newUserIdInput.value.trim();
-      const newPinRaw = newPinInput.value.trim();
+      const currentPinValue = currentPinInput ? currentPinInput.value.trim() : "";
+      const newUserIdRaw = newUserIdInput ? newUserIdInput.value.trim() : "";
+      const newPinRaw = newPinInput ? newPinInput.value.trim() : "";
 
       if (!currentPinValue) {
-        alert("現在のPINを入力してください");
+        alert("現在のパスワードを入力してください");
         return;
       }
       if (currentPinValue !== currentPin) {
-        alert("現在のPINが正しくありません");
+        alert("現在のパスワードが正しくありません");
         return;
       }
       if (!newUserIdRaw && !newPinRaw) {
@@ -505,7 +857,6 @@
       try {
         const usersCol = db.collection("users");
 
-        // ユーザーIDも変更する場合
         if (newUserIdRaw && newUserIdRaw !== currentUserId) {
           const newDocRef = usersCol.doc(newUserIdRaw);
           const newSnap = await newDocRef.get();
@@ -514,18 +865,18 @@
             return;
           }
 
-          // 新しいIDのドキュメントを作成（marksごとコピー）
           await newDocRef.set({
             pin: targetPin,
-            marks: marks
+            marks: marks,
+            markDefinitions: markDefinitions,
+            mainMarkId: mainMarkId,
+            subMarkIds: subMarkIds
           });
 
-          // 古いIDのドキュメントを削除
           await usersCol.doc(currentUserId).delete();
 
           targetUserId = newUserIdRaw;
         } else {
-          // IDはそのままでパスワードだけ変更
           await usersCol.doc(currentUserId).set(
             { pin: targetPin },
             { merge: true }
@@ -536,6 +887,7 @@
         currentPin = targetPin;
         updateLoginStatusUI();
         clearAccountInputs();
+        showMainView();
         alert("アカウント情報を更新しました");
       } catch (e) {
         console.error(e);
@@ -550,8 +902,8 @@
         return;
       }
 
-      const currentPinInput = document.getElementById("currentPinInput");
-      const currentPinValue = currentPinInput.value.trim();
+      const currentPinInput = document.getElementById("deleteCurrentPasswordInput");
+      const currentPinValue = currentPinInput ? currentPinInput.value.trim() : "";
 
       if (!currentPinValue) {
         alert("現在のパスワードを入力してください");
@@ -570,16 +922,22 @@
 
       try {
         await db.collection("users").doc(currentUserId).delete();
-        // ローカル状態をリセット
+
         marks = {};
+        markDefinitions = {};
+        mainMarkId = null;
+        subMarkIds = {};
         currentUserId = null;
         currentPin = null;
 
-        document.getElementById("userIdInput").value = "";
-        document.getElementById("pinInput").value = "";
+        const userIdInput = document.getElementById("userIdInput");
+        const pinInput = document.getElementById("pinInput");
+        if (userIdInput) userIdInput.value = "";
+        if (pinInput) pinInput.value = "";
         clearAccountInputs();
 
         updateLoginStatusUI();
+        showMainView();
         renderCalendar();
 
         alert("アカウントを削除しました");
@@ -589,39 +947,39 @@
       }
     }
 
-    function clearAccountInputs() {
-      const currentPinInput = document.getElementById("currentPinInput");
-      const newUserIdInput = document.getElementById("newUserIdInput");
-      const newPinInput = document.getElementById("newPinInput");
+    function clearChangeViewInputs() {
+      const cur = document.getElementById("changeCurrentPasswordInput");
+      const newId = document.getElementById("changeNewUserIdInput");
+      const newPw = document.getElementById("changeNewPasswordInput");
+      if (cur) cur.value = "";
+      if (newId) newId.value = "";
+      if (newPw) newPw.value = "";
+    }
 
-      if (currentPinInput) currentPinInput.value = "";
-      if (newUserIdInput) newUserIdInput.value = "";
-      if (newPinInput) newPinInput.value = "";
+    function clearDeleteViewInputs() {
+      const cur = document.getElementById("deleteCurrentPasswordInput");
+      if (cur) cur.value = "";
+    }
+
+    function clearAccountInputs() {
+      clearChangeViewInputs();
+      clearDeleteViewInputs();
     }
 
     // ===== UI更新 =====
     function updateLoginStatusUI() {
       const status = document.getElementById("loginStatus");
-      const accountSettings = document.getElementById("accountSettings");
+      const settingsBtn = document.getElementById("settingsBtn");
+      const settingsMenu = document.getElementById("settingsMenu");
 
       if (!currentUserId) {
         status.textContent = "未ログイン / まずはユーザーIDとパスワードで新規登録してください";
-        if (accountSettings) accountSettings.style.display = "none";
+        if (settingsBtn) settingsBtn.style.display = "none";
+        if (settingsMenu) settingsMenu.style.display = "none";
       } else {
         status.textContent = `ログイン中：${currentUserId}（このIDでクラウド同期中）`;
-        if (accountSettings) accountSettings.style.display = "block";
+        if (settingsBtn) settingsBtn.style.display = "inline-flex";
       }
-    }
-
-    function saveMarksToCloud() {
-      if (!currentUserId || !currentPin) return;
-      const docRef = db.collection("users").doc(currentUserId);
-      docRef.set(
-        { pin: currentPin, marks: marks },
-        { merge: true }
-      ).catch((e) => {
-        console.error("saveMarksToCloud error", e);
-      });
     }
 
     // ===== カレンダー描画 =====
@@ -683,84 +1041,99 @@
     }
 
     function updateCellMark(cell, key) {
-      const icon = cell.querySelector(".mark-icon");
-      icon.textContent = "";
-      icon.classList.remove("mark-check","mark-circle","mark-double");
-      const mark = marks[key];
-      if (!mark) return;
+      const iconEl = cell.querySelector(".mark-icon");
+      iconEl.textContent = "";
+      iconEl.style.color = "#111827";
 
-      if (mark === "check") {
-        icon.textContent = "✓";
-        icon.classList.add("mark-check");
-      } else if (mark === "circle") {
-        icon.textContent = "○";
-        icon.classList.add("mark-circle");
-      } else if (mark === "double") {
-        icon.textContent = "◎";
-        icon.classList.add("mark-double");
+      const markId = marks[key];
+      if (!markId) return;
+      const def = markDefinitions[markId];
+      if (!def) return;
+
+      iconEl.textContent = def.icon || "";
+      if (def.color) {
+        iconEl.style.color = def.color;
       }
     }
 
-    function toggleCheck(key) {
+    function toggleMainMarkOnDate(key) {
       if (!currentUserId) {
         alert("先にログインしてください");
         return;
       }
+      ensureDefaultMarksIfEmpty();
+      if (!mainMarkId || !markDefinitions[mainMarkId]) {
+        alert("メインマークが設定されていません。設定画面から登録してください。");
+        return;
+      }
+
       const current = marks[key];
-      if (current === "check") {
+      if (current) {
+        // 何か付いていたら空白に戻す
         delete marks[key];
       } else {
-        marks[key] = "check";
+        // 何もなければメインマークをセット
+        marks[key] = mainMarkId;
       }
-      saveMarksToCloud();
+      saveUserStateToCloud();
     }
 
+    // ===== タップ / 長押し（pointer ベース） =====
     function attachPressHandlers(cell, key) {
-      const start = (ev) => {
+      let pressTimer = null;
+
+      cell.addEventListener("pointerdown", (ev) => {
         if (cell.classList.contains("empty")) return;
+
         if (!currentUserId) {
-          if (ev.type === "mousedown" || ev.type === "touchstart") {
+          if (ev.pointerType === "mouse" || ev.pointerType === "touch" || ev.pointerType === "pen") {
             alert("先にログインしてください");
           }
           return;
         }
-        if (ev.type === "mousedown" && ev.button !== 0) return;
+
+        // 右クリックは即サブマークメニュー
+        if (ev.button === 2) {
+          ev.preventDefault();
+          openMarkMenuForCell(cell, key);
+          return;
+        }
 
         longPressTriggered = false;
-        if (longPressTimer) clearTimeout(longPressTimer);
-        longPressTimer = setTimeout(() => {
+        if (pressTimer) clearTimeout(pressTimer);
+        pressTimer = setTimeout(() => {
           longPressTriggered = true;
           openMarkMenuForCell(cell, key);
         }, LONG_PRESS_MS);
-      };
+      });
 
-      const cancel = (ev) => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
+      cell.addEventListener("pointerup", (ev) => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
         }
         if (!currentUserId || cell.classList.contains("empty")) return;
+        if (ev.button === 2) return;
 
         if (!longPressTriggered) {
-          if (ev && ev.type === "mouseup" && ev.button !== 0) return;
-          toggleCheck(key);
+          toggleMainMarkOnDate(key);
           updateCellMark(cell, key);
         }
-      };
+      });
 
-      const cancelOnly = () => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
+      cell.addEventListener("pointerleave", () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
         }
-      };
+      });
 
-      cell.addEventListener("mousedown", start);
-      cell.addEventListener("touchstart", start, { passive: true });
-      cell.addEventListener("mouseup", cancel);
-      cell.addEventListener("mouseleave", cancelOnly);
-      cell.addEventListener("touchend", cancel);
-      cell.addEventListener("touchcancel", cancelOnly);
+      cell.addEventListener("pointercancel", () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      });
 
       cell.addEventListener("contextmenu", (ev) => {
         if (cell.classList.contains("empty")) return;
@@ -775,16 +1148,66 @@
 
     const markMenu = document.getElementById("markMenu");
 
+    function buildMarkMenuItems() {
+      markMenu.innerHTML = "";
+      ensureDefaultMarksIfEmpty();
+
+      // サブ1〜10で設定されているものだけ出す
+      let hasSub = false;
+      for (let i = 1; i <= 10; i++) {
+        const id = subMarkIds[String(i)];
+        if (!id) continue;
+        const def = markDefinitions[id];
+        if (!def) continue;
+        hasSub = true;
+
+        const btn = document.createElement("button");
+        btn.dataset.markId = id;
+        const iconSpan = document.createElement("span");
+        iconSpan.className = "icon";
+        iconSpan.textContent = def.icon || "?";
+        if (def.color) iconSpan.style.color = def.color;
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = `サブ${i}`;
+        btn.appendChild(iconSpan);
+        btn.appendChild(labelSpan);
+        markMenu.appendChild(btn);
+      }
+
+      // 「マークを消す」は必ず置く
+      const clearBtn = document.createElement("button");
+      clearBtn.dataset.markId = "none";
+      const cIcon = document.createElement("span");
+      cIcon.className = "icon";
+      cIcon.textContent = "×";
+      const cLabel = document.createElement("span");
+      cLabel.textContent = "マークを消す";
+      clearBtn.appendChild(cIcon);
+      clearBtn.appendChild(cLabel);
+      markMenu.appendChild(clearBtn);
+
+      if (!hasSub) {
+        // サブが1つもないときは、軽く説明を出す
+        const info = document.createElement("div");
+        info.style.fontSize = "0.75rem";
+        info.style.color = "#6b7280";
+        info.style.marginTop = "4px";
+        info.textContent = "※サブマークは設定画面から登録できます。";
+        markMenu.appendChild(info);
+      }
+    }
+
     function openMarkMenuForCell(cell, key) {
       if (!currentUserId) {
         alert("先にログインしてください");
         return;
       }
+      buildMarkMenuItems();
       const rect = cell.getBoundingClientRect();
       markMenu.style.display = "flex";
       let left = rect.left + window.scrollX;
       let top = rect.bottom + window.scrollY + 4;
-      const menuWidth = 160;
+      const menuWidth = 180;
       if (left + menuWidth > window.scrollX + window.innerWidth) {
         left = window.scrollX + window.innerWidth - menuWidth - 8;
       }
@@ -801,16 +1224,16 @@
     markMenu.addEventListener("click", (ev) => {
       const btn = ev.target.closest("button");
       if (!btn) return;
-      const mark = btn.dataset.mark;
+      const markId = btn.dataset.markId;
       const key = markMenu.dataset.dateKey;
       if (!key || !currentUserId) return;
 
-      if (mark === "none") {
+      if (markId === "none") {
         delete marks[key];
-      } else {
-        marks[key] = mark;
+      } else if (markDefinitions[markId]) {
+        marks[key] = markId;
       }
-      saveMarksToCloud();
+      saveUserStateToCloud();
       const cell = document.querySelector(`.day[data-date-key="${key}"]`);
       if (cell) updateCellMark(cell, key);
       closeMarkMenu();
@@ -886,14 +1309,113 @@
       renderCalendar();
     });
 
-    // ===== ログインUIセットアップ =====
+    // ===== マーク設定画面のUI =====
+    function generateMarkId() {
+      return "m" + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+    }
+
+    function renderMarkSettingsUI() {
+      ensureDefaultMarksIfEmpty();
+
+      const mainSelect = document.getElementById("mainMarkSelect");
+      const unusedList = document.getElementById("unusedMarksList");
+
+      const allIds = Object.keys(markDefinitions);
+
+      // メイン
+      mainSelect.innerHTML = "";
+      const ph = document.createElement("option");
+      ph.value = "";
+      ph.textContent = "選択してください";
+      mainSelect.appendChild(ph);
+      allIds.forEach((id) => {
+        const def = markDefinitions[id];
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = def.icon || "?";
+        if (def.color) {
+          opt.style.color = def.color;
+        }
+        mainSelect.appendChild(opt);
+      });
+      if (mainMarkId && markDefinitions[mainMarkId]) {
+        mainSelect.value = mainMarkId;
+      }
+
+      // サブ1〜10
+      for (let i = 1; i <= 10; i++) {
+        const sel = document.getElementById("subMarkSelect" + i);
+        if (!sel) continue;
+        sel.innerHTML = "";
+        const noneOpt = document.createElement("option");
+        noneOpt.value = "";
+        noneOpt.textContent = "未設定";
+        sel.appendChild(noneOpt);
+
+        allIds.forEach((id) => {
+          const def = markDefinitions[id];
+          const opt = document.createElement("option");
+          opt.value = id;
+          opt.textContent = def.icon || "?";
+          if (def.color) {
+            opt.style.color = def.color;
+          }
+          sel.appendChild(opt);
+        });
+
+        const currentId = subMarkIds[String(i)];
+        if (currentId && markDefinitions[currentId]) {
+          sel.value = currentId;
+        }
+      }
+
+      // 追加されたマーク（どこにも割り当てられていないID）
+      unusedList.innerHTML = "";
+      const used = new Set();
+      if (mainMarkId) used.add(mainMarkId);
+      Object.values(subMarkIds).forEach((id) => {
+        if (id) used.add(id);
+      });
+
+      const unusedIds = allIds.filter((id) => !used.has(id));
+      if (unusedIds.length === 0) {
+        const msg = document.createElement("span");
+        msg.textContent = "未割り当てのマークはありません。";
+        msg.style.fontSize = "0.8rem";
+        msg.style.color = "#6b7280";
+        unusedList.appendChild(msg);
+      } else {
+        unusedIds.forEach((id) => {
+          const def = markDefinitions[id];
+          const item = document.createElement("div");
+          item.className = "unused-mark-item";
+          const iconSpan = document.createElement("span");
+          iconSpan.className = "unused-mark-icon";
+          iconSpan.textContent = def.icon || "?";
+          if (def.color) iconSpan.style.color = def.color;
+          item.appendChild(iconSpan);
+          unusedList.appendChild(item);
+        });
+      }
+    }
+
+    // ===== ログインUI & 設定UIセットアップ =====
     function setupLoginUI() {
       const userIdInput = document.getElementById("userIdInput");
       const pinInput = document.getElementById("pinInput");
       const registerBtn = document.getElementById("registerBtn");
       const loginBtn = document.getElementById("loginBtn");
-      const updateAccountBtn = document.getElementById("updateAccountBtn");
-      const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+      const settingsBtn = document.getElementById("settingsBtn");
+      const settingsMenu = document.getElementById("settingsMenu");
+
+      const changeSaveBtn = document.getElementById("changeSaveBtn");
+      const changeBackBtn = document.getElementById("changeBackBtn");
+      const deleteExecuteBtn = document.getElementById("deleteExecuteBtn");
+      const deleteBackBtn = document.getElementById("deleteBackBtn");
+
+      const addMarkBtn = document.getElementById("addMarkBtn");
+      const markSaveBtn = document.getElementById("markSaveBtn");
+      const markBackBtn = document.getElementById("markBackBtn");
 
       registerBtn.addEventListener("click", () => {
         const userId = userIdInput.value.trim();
@@ -907,14 +1429,132 @@
         loginUser(userId, pin);
       });
 
-      if (updateAccountBtn) {
-        updateAccountBtn.addEventListener("click", () => {
+      if (settingsBtn && settingsMenu) {
+        settingsBtn.addEventListener("click", (ev) => {
+          if (!currentUserId) {
+            alert("先にログインしてください");
+            return;
+          }
+          ev.stopPropagation();
+          const isOpen = settingsMenu.style.display === "block";
+          settingsMenu.style.display = isOpen ? "none" : "block";
+        });
+
+        settingsMenu.addEventListener("click", (ev) => {
+          const btn = ev.target.closest("button");
+          if (!btn) return;
+          const action = btn.dataset.action;
+          if (action === "openChange") {
+            showChangeView();
+          } else if (action === "openDelete") {
+            showDeleteView();
+          } else if (action === "logout") {
+            logoutUser();
+          } else if (action === "openMarks") {
+            showMarkSettingsView();
+          }
+        });
+
+        document.addEventListener("click", (ev) => {
+          const withinBtn = ev.target.closest("#settingsBtn");
+          const withinMenu = ev.target.closest("#settingsMenu");
+          if (!withinBtn && !withinMenu) {
+            settingsMenu.style.display = "none";
+          }
+        });
+      }
+
+      if (changeSaveBtn) {
+        changeSaveBtn.addEventListener("click", () => {
           updateAccountInfo();
         });
       }
-      if (deleteAccountBtn) {
-        deleteAccountBtn.addEventListener("click", () => {
+      if (changeBackBtn) {
+        changeBackBtn.addEventListener("click", () => {
+          showMainView();
+        });
+      }
+      if (deleteExecuteBtn) {
+        deleteExecuteBtn.addEventListener("click", () => {
           deleteAccount();
+        });
+      }
+      if (deleteBackBtn) {
+        deleteBackBtn.addEventListener("click", () => {
+          showMainView();
+        });
+      }
+
+      if (addMarkBtn) {
+        addMarkBtn.addEventListener("click", () => {
+          const iconInput = document.getElementById("newMarkIconInput");
+          const colorInput = document.getElementById("newMarkColorInput");
+          const icon = iconInput.value.trim();
+          const color = colorInput.value || "#111827";
+          if (!icon) {
+            alert("表示する記号・絵文字を入力してください");
+            return;
+          }
+          // 既存と同じ見た目（icon + color）は追加しない
+          for (const def of Object.values(markDefinitions)) {
+            if (def.icon === icon && (def.color || "#111827") === color) {
+              alert("同じ見た目のマークが既に存在します。");
+              return;
+            }
+          }
+          const id = generateMarkId();
+          markDefinitions[id] = { icon, color };
+          iconInput.value = "";
+          renderMarkSettingsUI();
+        });
+      }
+
+      if (markSaveBtn) {
+        markSaveBtn.addEventListener("click", () => {
+          const mainSelect = document.getElementById("mainMarkSelect");
+          const newMainId = mainSelect.value;
+          if (!newMainId) {
+            alert("メインを登録してください");
+            return;
+          }
+          if (!markDefinitions[newMainId]) {
+            alert("選択されたメインマークが無効です");
+            return;
+          }
+
+          const newSubs = {};
+          const usedIds = [];
+          usedIds.push(newMainId);
+
+          for (let i = 1; i <= 10; i++) {
+            const sel = document.getElementById("subMarkSelect" + i);
+            if (!sel) continue;
+            const val = sel.value;
+            if (val && markDefinitions[val]) {
+              newSubs[String(i)] = val;
+              usedIds.push(val);
+            }
+          }
+
+          // メイン＆サブに同じマークIDが複数入っていたらエラー
+          const idSet = new Set(usedIds);
+          if (idSet.size !== usedIds.length) {
+            alert("メインやサブに同じマークを複数登録することはできません。");
+            return;
+          }
+
+          mainMarkId = newMainId;
+          subMarkIds = newSubs;
+          saveUserStateToCloud();
+          showMainView();
+          renderCalendar();
+          alert("マーク設定を保存しました");
+        });
+      }
+
+      if (markBackBtn) {
+        markBackBtn.addEventListener("click", () => {
+          showMainView();
         });
       }
     }
@@ -926,6 +1566,7 @@
       currentMonth = now.getMonth();
       updateLoginStatusUI();
       setupLoginUI();
+      showMainView();
       renderCalendar();
     }
 

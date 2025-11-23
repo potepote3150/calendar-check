@@ -579,6 +579,16 @@
     let currentUserId = null;
     let currentPin = null; // パスワード
 
+    // ログインしていないときのアラートを連発しないためのフラグ
+    let loginHintShown = false;
+
+    function showLoginRequiredHint() {
+      if (!loginHintShown) {
+        alert("先にログインしてください");
+        loginHintShown = true;
+      }
+    }
+
     // ===== デフォルトマーク定義 =====
     function getDefaultMarkSetup() {
       const defs = {
@@ -621,7 +631,7 @@
     }
     function showChangeView() {
       if (!currentUserId) {
-        alert("先にログインしてください");
+        showLoginRequiredHint();
         return;
       }
       clearChangeViewInputs();
@@ -631,7 +641,7 @@
     }
     function showDeleteView() {
       if (!currentUserId) {
-        alert("先にログインしてください");
+        showLoginRequiredHint();
         return;
       }
       clearDeleteViewInputs();
@@ -641,7 +651,7 @@
     }
     function showMarkSettingsView() {
       if (!currentUserId) {
-        alert("先にログインしてください");
+        showLoginRequiredHint();
         return;
       }
       ensureDefaultMarksIfEmpty();
@@ -705,7 +715,6 @@
       if (!currentUserId || !currentPin) return;
       const docRef = db.collection("users").doc(currentUserId);
 
-      // merge を使わず、pin / marks / markDefinitions / mainMarkId / subMarkIds を丸ごと上書き
       docRef.set({
         pin: currentPin,
         marks,
@@ -748,11 +757,12 @@
         }
         currentUserId = userId;
         currentPin = pin;
+        loginHintShown = false;
         updateLoginStatusUI();
         showMainView();
         renderCalendar();
         clearAccountInputs();
-        alert("新規ユーザーとして登録しました！");
+        alert("新規登録が完了し、このIDでログインしました！");
       }).catch((e) => {
         console.error(e);
         alert("新規登録でエラーが発生しました");
@@ -784,13 +794,14 @@
 
         currentUserId = userId;
         currentPin = data.pin;
+        loginHintShown = false;
         loadUserStateFromData(data, docRef);
         ensureDefaultMarksIfEmpty();
         updateLoginStatusUI();
         showMainView();
         renderCalendar();
         clearAccountInputs();
-        alert("ログインしました！");
+        alert("ログインに成功しました！");
       }).catch((e) => {
         console.error(e);
         alert("ログインでエラーが発生しました");
@@ -807,6 +818,7 @@
       markDefinitions = {};
       mainMarkId = null;
       subMarkIds = {};
+      loginHintShown = false;
 
       const userIdInput = document.getElementById("userIdInput");
       const pinInput = document.getElementById("pinInput");
@@ -824,7 +836,7 @@
     // ===== アカウント情報更新 =====
     async function updateAccountInfo() {
       if (!currentUserId) {
-        alert("先にログインしてください");
+        showLoginRequiredHint();
         return;
       }
 
@@ -887,6 +899,7 @@
 
         currentUserId = targetUserId;
         currentPin = targetPin;
+        loginHintShown = false;
         updateLoginStatusUI();
         clearAccountInputs();
         showMainView();
@@ -900,7 +913,7 @@
     // ===== アカウント削除 =====
     async function deleteAccount() {
       if (!currentUserId) {
-        alert("先にログインしてください");
+        showLoginRequiredHint();
         return;
       }
 
@@ -931,6 +944,7 @@
         subMarkIds = {};
         currentUserId = null;
         currentPin = null;
+        loginHintShown = false;
 
         const userIdInput = document.getElementById("userIdInput");
         const pinInput = document.getElementById("pinInput");
@@ -1059,10 +1073,7 @@
     }
 
     function toggleMainMarkOnDate(key) {
-      if (!currentUserId) {
-        alert("先にログインしてください");
-        return;
-      }
+      if (!currentUserId) return; // ガード
       ensureDefaultMarksIfEmpty();
       if (!mainMarkId || !markDefinitions[mainMarkId]) {
         alert("メインマークが設定されていません。設定画面から登録してください。");
@@ -1071,11 +1082,9 @@
 
       const current = marks[key];
       if (current) {
-        // 何か付いていたら空白に戻す
-        delete marks[key];
+        delete marks[key];        // 何か付いていたら空白に戻す
       } else {
-        // 何もなければメインマークをセット
-        marks[key] = mainMarkId;
+        marks[key] = mainMarkId;  // 何もなければメインマークをセット
       }
       saveUserStateToCloud();
     }
@@ -1087,9 +1096,10 @@
       cell.addEventListener("pointerdown", (ev) => {
         if (cell.classList.contains("empty")) return;
 
+        // ログインしていないときは1回だけ注意を出す
         if (!currentUserId) {
           if (ev.pointerType === "mouse" || ev.pointerType === "touch" || ev.pointerType === "pen") {
-            alert("先にログインしてください");
+            showLoginRequiredHint();
           }
           return;
         }
@@ -1141,7 +1151,7 @@
         if (cell.classList.contains("empty")) return;
         ev.preventDefault();
         if (!currentUserId) {
-          alert("先にログインしてください");
+          showLoginRequiredHint();
           return;
         }
         openMarkMenuForCell(cell, key);
@@ -1200,7 +1210,7 @@
 
     function openMarkMenuForCell(cell, key) {
       if (!currentUserId) {
-        alert("先にログインしてください");
+        showLoginRequiredHint();
         return;
       }
       buildMarkMenuItems();
@@ -1449,7 +1459,7 @@
       if (settingsBtn && settingsMenu) {
         settingsBtn.addEventListener("click", (ev) => {
           if (!currentUserId) {
-            alert("先にログインしてください");
+            showLoginRequiredHint();
             return;
           }
           ev.stopPropagation();
@@ -1634,6 +1644,7 @@
       const now = new Date();
       currentYear = now.getFullYear();
       currentMonth = now.getMonth();
+      loginHintShown = false;
       updateLoginStatusUI();
       setupLoginUI();
       showMainView();

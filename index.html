@@ -255,59 +255,54 @@
     <div class="login-panel" style="margin-bottom: 12px; font-size: 0.85rem;">
       <div style="display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap;">
         <input id="userIdInput" placeholder="ユーザーID"
-               style="flex:1; min-width:90px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-        <input id="pinInput" placeholder="PIN(数字など)" type="password"
-               style="width:110px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-        <button id="loginBtn"
-                style="padding:4px 10px; border:none; border-radius:999px; background:#3b82f6; color:#fff; cursor:pointer; white-space:nowrap;">
-          ログイン
-        </button>
+               style="flex:1; min-width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
+        <input id="pinInput" placeholder="パスワード" type="password"
+               style="width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
         <button id="registerBtn"
-                style="padding:4px 10px; border:none; border-radius:999px; background:#10b981; color:#fff; cursor:pointer; white-space:nowrap;">
+                style="padding:4px 10px; border:none; border-radius:999px; background:#10b981; color:#fff; cursor:pointer;">
           新規登録
         </button>
+        <button id="loginBtn"
+                style="padding:4px 10px; border:none; border-radius:999px; background:#3b82f6; color:#fff; cursor:pointer;">
+          ログイン
+        </button>
       </div>
-      <div id="loginStatus" style="color:#6b7280; margin-bottom:4px;">
-        未ログイン / 先にログインしてからマークできます
+      <div id="loginStatus" style="color:#6b7280;">
+        未ログイン / まずはユーザーIDとパスワードで新規登録してください
       </div>
 
-      <!-- アカウント管理パネル（ログイン中のみ表示） -->
-      <div id="accountPanel"
-           style="display:none; margin-top:4px; padding:8px; border-radius:8px; background:#f3f4f6;">
-        <div style="font-weight:600; margin-bottom:4px; font-size:0.8rem;">アカウント管理</div>
+      <!-- アカウント設定（ログイン中のみ表示） -->
+      <div id="accountSettings"
+           style="margin-top:8px; display:none; font-size:0.8rem; border-top:1px solid #e5e7eb; padding-top:8px;">
+        <div style="margin-bottom:4px; color:#4b5563;">アカウント設定（ログイン中のみ）</div>
 
-        <div style="display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap;">
-          <input id="currentPinForAccount" type="password" placeholder="現在のPIN"
-                 style="flex:1; min-width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
+        <div style="display:flex; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+          <input id="currentPinInput" type="password" placeholder="現在のPIN（必須）"
+                 style="flex:1; min-width:160px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
         </div>
 
-        <div style="display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap;">
-          <input id="newUserIdInput" placeholder="新しいユーザーID"
+        <div style="display:flex; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+          <input id="newUserIdInput" placeholder="新しいユーザーID（変更したいときだけ）"
                  style="flex:1; min-width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-          <button id="changeIdBtn"
-                  style="padding:4px 10px; border:none; border-radius:999px; background:#6366f1; color:#fff; cursor:pointer; white-space:nowrap;">
-            ID変更
+          <input id="newPinInput" type="password" placeholder="新しいパスワード（変更したいときだけ）"
+                 style="width:150px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
+          <button id="updateAccountBtn"
+                  style="padding:4px 10px; border:none; border-radius:999px; background:#6366f1; color:#fff; cursor:pointer;">
+            変更
           </button>
         </div>
 
-        <div style="display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap;">
-          <input id="newPinInput" type="password" placeholder="新しいPIN"
-                 style="flex:1; min-width:120px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
-          <button id="changePinBtn"
-                  style="padding:4px 10px; border:none; border-radius:999px; background:#f59e0b; color:#fff; cursor:pointer; white-space:nowrap;">
-            PIN変更
-          </button>
-        </div>
-
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">
           <button id="deleteAccountBtn"
                   style="padding:4px 10px; border:none; border-radius:999px; background:#ef4444; color:#fff; cursor:pointer;">
             アカウント削除
           </button>
         </div>
 
-        <div style="margin-top:4px; color:#6b7280; font-size:0.7rem;">
-          ※ID変更・PIN変更・削除は、必ず上の「現在のPIN」が正しく入力されているときだけ実行できます。
+        <div style="font-size:0.7rem; color:#6b7280; margin-top:4px;">
+          ※ID変更・パスワード変更・削除を行うときは必ず「現在のパスワード」を入力してください。<br>
+          ※ユーザーIDを変更すると、今後は新しいIDでログインします。<br>
+          ※アカウント削除をすると、このユーザーIDのカレンダーデータはすべて消えます。
         </div>
       </div>
     </div>
@@ -336,7 +331,7 @@
         <div class="legend-icon double">◎</div><span>二重丸 (オレンジ)</span>
       </div>
     </div>
-    <p class="hint">※ユーザーIDごとにクラウド保存されます（勉強用なのでPINは平文保存）。</p>
+    <p class="hint">※ユーザーIDごとにクラウド保存されます。</p>
   </div>
 
   <!-- マーク選択メニュー -->
@@ -401,49 +396,45 @@
     let currentUserId = null;
     let currentPin = null;
 
-    // ===== ユーティリティ =====
-    function dateKey(year, month, day) {
-      const m = (month + 1).toString().padStart(2, "0");
-      const d = day.toString().padStart(2, "0");
-      return `${year}-${m}-${d}`;
-    }
-
-    function requireLoggedIn() {
-      if (!currentUserId) {
-        alert("先にログインしてください");
-        return false;
+    // ===== 新規登録 =====
+    function registerUser(userId, pin) {
+      if (!userId || !pin) {
+        alert("ユーザーIDとパスワードを両方入力してね");
+        return;
       }
-      return true;
-    }
 
-    function verifyCurrentPin(inputPin) {
-      if (!inputPin) {
-        alert("現在のPINを入力してください");
-        return false;
-      }
-      if (inputPin !== currentPin) {
-        alert("現在のPINが違います");
-        return false;
-      }
-      return true;
-    }
+      const docRef = db.collection("users").doc(userId);
 
-    // ===== データ保存 =====
-    function saveMarksToCloud() {
-      if (!currentUserId || !currentPin) return;
-      const docRef = db.collection("users").doc(currentUserId);
-      docRef.set(
-        { pin: currentPin, marks: marks },
-        { merge: true }
-      ).catch((e) => {
-        console.error("saveMarksToCloud error", e);
+      docRef.get().then((snap) => {
+        if (snap.exists) {
+          alert("そのユーザーIDは既に登録されています。別のIDを使ってください。");
+          return;
+        }
+        return docRef.set({
+          pin: pin,
+          marks: {}
+        });
+      }).then((result) => {
+        if (result === undefined) {
+          return; // 既存IDだった場合
+        }
+        marks = {};
+        currentUserId = userId;
+        currentPin = pin;
+        updateLoginStatusUI();
+        renderCalendar();
+        clearAccountInputs();
+        alert("新規ユーザーとして登録しました！");
+      }).catch((e) => {
+        console.error(e);
+        alert("新規登録でエラーが発生しました");
       });
     }
 
-    // ===== ログイン / 登録 =====
-    function loginExistingUser(userId, pin) {
+    // ===== ログイン =====
+    function loginUser(userId, pin) {
       if (!userId || !pin) {
-        alert("ユーザーIDとPINを両方入力してね");
+        alert("ユーザーIDとパスワードを両方入力してね");
         return;
       }
 
@@ -459,14 +450,16 @@
           return;
         }
         if (data.pin !== pin) {
-          alert("PIN が違います");
+          alert("パスワード が違います");
           return;
         }
+
         marks = data.marks || {};
         currentUserId = userId;
         currentPin = pin;
         updateLoginStatusUI();
         renderCalendar();
+        clearAccountInputs();
         alert("ログインしました！");
       }).catch((e) => {
         console.error(e);
@@ -474,132 +467,170 @@
       });
     }
 
-    function registerNewUser(userId, pin) {
-      if (!userId || !pin) {
-        alert("ユーザーIDとPINを両方入力してね");
-        return;
-      }
-
-      const docRef = db.collection("users").doc(userId);
-      docRef.get().then((snap) => {
-        if (snap.exists) {
-          alert("このユーザーIDは既に使われています");
-          return;
-        }
-        docRef.set({
-          pin: pin,
-          marks: {}
-        }).then(() => {
-          marks = {};
-          currentUserId = userId;
-          currentPin = pin;
-          updateLoginStatusUI();
-          renderCalendar();
-          alert("新規ユーザーとして登録しました！");
-        });
-      }).catch((e) => {
-        console.error(e);
-        alert("登録でエラーが発生しました");
-      });
-    }
-
-    function updateLoginStatusUI() {
-      const status = document.getElementById("loginStatus");
-      const accountPanel = document.getElementById("accountPanel");
+    // ===== アカウント情報更新（ID / パスワード変更） =====
+    async function updateAccountInfo() {
       if (!currentUserId) {
-        status.textContent = "未ログイン / 先にログインしてからマークできます";
-        if (accountPanel) accountPanel.style.display = "none";
-      } else {
-        status.textContent = `ログイン中：${currentUserId}（このIDでクラウド同期中）`;
-        if (accountPanel) accountPanel.style.display = "block";
-      }
-    }
-
-    // ===== アカウント管理（ID変更 / PIN変更 / 削除） =====
-    function changeUserId(newId, currentPinInput) {
-      if (!requireLoggedIn()) return;
-      if (!verifyCurrentPin(currentPinInput)) return;
-      if (!newId) {
-        alert("新しいユーザーIDを入力してください");
-        return;
-      }
-      if (newId === currentUserId) {
-        alert("現在のIDと同じです");
+        alert("先にログインしてください");
         return;
       }
 
-      const oldId = currentUserId;
-      const oldDocRef = db.collection("users").doc(oldId);
-      const newDocRef = db.collection("users").doc(newId);
+      const currentPinInput = document.getElementById("currentPinInput");
+      const newUserIdInput = document.getElementById("newUserIdInput");
+      const newPinInput = document.getElementById("newPinInput");
 
-      newDocRef.get().then((snap) => {
-        if (snap.exists) {
-          alert("そのユーザーIDは既に使われています");
-          return;
+      const currentPinValue = currentPinInput.value.trim();
+      const newUserIdRaw = newUserIdInput.value.trim();
+      const newPinRaw = newPinInput.value.trim();
+
+      if (!currentPinValue) {
+        alert("現在のPINを入力してください");
+        return;
+      }
+      if (currentPinValue !== currentPin) {
+        alert("現在のPINが正しくありません");
+        return;
+      }
+      if (!newUserIdRaw && !newPinRaw) {
+        alert("変更したいユーザーIDまたはパスワードを入力してください");
+        return;
+      }
+
+      let targetUserId = currentUserId;
+      let targetPin = currentPin;
+
+      if (newPinRaw) {
+        targetPin = newPinRaw;
+      }
+
+      try {
+        const usersCol = db.collection("users");
+
+        // ユーザーIDも変更する場合
+        if (newUserIdRaw && newUserIdRaw !== currentUserId) {
+          const newDocRef = usersCol.doc(newUserIdRaw);
+          const newSnap = await newDocRef.get();
+          if (newSnap.exists) {
+            alert("新しいユーザーIDは既に使われています");
+            return;
+          }
+
+          // 新しいIDのドキュメントを作成（marksごとコピー）
+          await newDocRef.set({
+            pin: targetPin,
+            marks: marks
+          });
+
+          // 古いIDのドキュメントを削除
+          await usersCol.doc(currentUserId).delete();
+
+          targetUserId = newUserIdRaw;
+        } else {
+          // IDはそのままでパスワードだけ変更
+          await usersCol.doc(currentUserId).set(
+            { pin: targetPin },
+            { merge: true }
+          );
         }
-        return newDocRef.set({
-          pin: currentPin,
-          marks: marks
-        }).then(() => {
-          return oldDocRef.delete();
-        }).then(() => {
-          currentUserId = newId;
-          updateLoginStatusUI();
-          alert("ユーザーIDを変更しました");
-        });
-      }).catch((e) => {
+
+        currentUserId = targetUserId;
+        currentPin = targetPin;
+        updateLoginStatusUI();
+        clearAccountInputs();
+        alert("アカウント情報を更新しました");
+      } catch (e) {
         console.error(e);
-        alert("ユーザーIDの変更でエラーが発生しました");
-      });
+        alert("アカウント更新時にエラーが発生しました");
+      }
     }
 
-    function changePin(newPin, currentPinInput) {
-      if (!requireLoggedIn()) return;
-      if (!verifyCurrentPin(currentPinInput)) return;
-      if (!newPin) {
-        alert("新しいPINを入力してください");
-        return;
-      }
-      if (newPin === currentPin) {
-        alert("現在のPINと同じです");
+    // ===== アカウント削除 =====
+    async function deleteAccount() {
+      if (!currentUserId) {
+        alert("先にログインしてください");
         return;
       }
 
-      const docRef = db.collection("users").doc(currentUserId);
-      docRef.update({
-        pin: newPin
-      }).then(() => {
-        currentPin = newPin;
-        alert("PINを変更しました");
-      }).catch((e) => {
-        console.error(e);
-        alert("PINの変更でエラーが発生しました");
-      });
-    }
+      const currentPinInput = document.getElementById("currentPinInput");
+      const currentPinValue = currentPinInput.value.trim();
 
-    function deleteAccount(currentPinInput) {
-      if (!requireLoggedIn()) return;
-      if (!verifyCurrentPin(currentPinInput)) return;
-
-      if (!window.confirm("このアカウントを本当に削除しますか？\n保存されているマークもすべて消えます。")) {
+      if (!currentPinValue) {
+        alert("現在のパスワードを入力してください");
+        return;
+      }
+      if (currentPinValue !== currentPin) {
+        alert("現在のパスワードが正しくありません");
         return;
       }
 
-      const docRef = db.collection("users").doc(currentUserId);
-      docRef.delete().then(() => {
+      const ok = confirm(
+        "本当にこのアカウントを削除しますか？\n" +
+        "このユーザーIDのカレンダーデータはすべて消えます。"
+      );
+      if (!ok) return;
+
+      try {
+        await db.collection("users").doc(currentUserId).delete();
+        // ローカル状態をリセット
         marks = {};
         currentUserId = null;
         currentPin = null;
+
+        document.getElementById("userIdInput").value = "";
+        document.getElementById("pinInput").value = "";
+        clearAccountInputs();
+
         updateLoginStatusUI();
         renderCalendar();
+
         alert("アカウントを削除しました");
-      }).catch((e) => {
+      } catch (e) {
         console.error(e);
-        alert("アカウント削除でエラーが発生しました");
+        alert("アカウント削除中にエラーが発生しました");
+      }
+    }
+
+    function clearAccountInputs() {
+      const currentPinInput = document.getElementById("currentPinInput");
+      const newUserIdInput = document.getElementById("newUserIdInput");
+      const newPinInput = document.getElementById("newPinInput");
+
+      if (currentPinInput) currentPinInput.value = "";
+      if (newUserIdInput) newUserIdInput.value = "";
+      if (newPinInput) newPinInput.value = "";
+    }
+
+    // ===== UI更新 =====
+    function updateLoginStatusUI() {
+      const status = document.getElementById("loginStatus");
+      const accountSettings = document.getElementById("accountSettings");
+
+      if (!currentUserId) {
+        status.textContent = "未ログイン / まずはユーザーIDとパスワードで新規登録してください";
+        if (accountSettings) accountSettings.style.display = "none";
+      } else {
+        status.textContent = `ログイン中：${currentUserId}（このIDでクラウド同期中）`;
+        if (accountSettings) accountSettings.style.display = "block";
+      }
+    }
+
+    function saveMarksToCloud() {
+      if (!currentUserId || !currentPin) return;
+      const docRef = db.collection("users").doc(currentUserId);
+      docRef.set(
+        { pin: currentPin, marks: marks },
+        { merge: true }
+      ).catch((e) => {
+        console.error("saveMarksToCloud error", e);
       });
     }
 
     // ===== カレンダー描画 =====
+    function dateKey(year, month, day) {
+      const m = (month + 1).toString().padStart(2, "0");
+      const d = day.toString().padStart(2, "0");
+      return `${year}-${m}-${d}`;
+    }
+
     function renderCalendar() {
       const grid = document.getElementById("calendarGrid");
       grid.innerHTML = "";
@@ -671,7 +702,10 @@
     }
 
     function toggleCheck(key) {
-      if (!requireLoggedIn()) return;
+      if (!currentUserId) {
+        alert("先にログインしてください");
+        return;
+      }
       const current = marks[key];
       if (current === "check") {
         delete marks[key];
@@ -739,11 +773,13 @@
       });
     }
 
-    // ===== マークメニュー =====
     const markMenu = document.getElementById("markMenu");
 
     function openMarkMenuForCell(cell, key) {
-      if (!requireLoggedIn()) return;
+      if (!currentUserId) {
+        alert("先にログインしてください");
+        return;
+      }
       const rect = cell.getBoundingClientRect();
       markMenu.style.display = "flex";
       let left = rect.left + window.scrollX;
@@ -787,7 +823,7 @@
       }
     });
 
-    // ===== 月選択 =====
+    // ===== 年月ピッカー & ナビ =====
     const MIN_YEAR = 2000;
     const MAX_YEAR = 2100;
 
@@ -850,48 +886,37 @@
       renderCalendar();
     });
 
-    // ===== ログインUIのイベント設定 =====
+    // ===== ログインUIセットアップ =====
     function setupLoginUI() {
       const userIdInput = document.getElementById("userIdInput");
       const pinInput = document.getElementById("pinInput");
-      const loginBtn = document.getElementById("loginBtn");
       const registerBtn = document.getElementById("registerBtn");
-
-      const currentPinForAccount = document.getElementById("currentPinForAccount");
-      const newUserIdInput = document.getElementById("newUserIdInput");
-      const newPinInput = document.getElementById("newPinInput");
-      const changeIdBtn = document.getElementById("changeIdBtn");
-      const changePinBtn = document.getElementById("changePinBtn");
+      const loginBtn = document.getElementById("loginBtn");
+      const updateAccountBtn = document.getElementById("updateAccountBtn");
       const deleteAccountBtn = document.getElementById("deleteAccountBtn");
-
-      loginBtn.addEventListener("click", () => {
-        const userId = userIdInput.value.trim();
-        const pin = pinInput.value.trim();
-        loginExistingUser(userId, pin);
-      });
 
       registerBtn.addEventListener("click", () => {
         const userId = userIdInput.value.trim();
         const pin = pinInput.value.trim();
-        registerNewUser(userId, pin);
+        registerUser(userId, pin);
       });
 
-      changeIdBtn.addEventListener("click", () => {
-        const newId = newUserIdInput.value.trim();
-        const cp = currentPinForAccount.value.trim();
-        changeUserId(newId, cp);
+      loginBtn.addEventListener("click", () => {
+        const userId = userIdInput.value.trim();
+        const pin = pinInput.value.trim();
+        loginUser(userId, pin);
       });
 
-      changePinBtn.addEventListener("click", () => {
-        const newPin = newPinInput.value.trim();
-        const cp = currentPinForAccount.value.trim();
-        changePin(newPin, cp);
-      });
-
-      deleteAccountBtn.addEventListener("click", () => {
-        const cp = currentPinForAccount.value.trim();
-        deleteAccount(cp);
-      });
+      if (updateAccountBtn) {
+        updateAccountBtn.addEventListener("click", () => {
+          updateAccountInfo();
+        });
+      }
+      if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener("click", () => {
+          deleteAccount();
+        });
+      }
     }
 
     // ===== 初期化 =====

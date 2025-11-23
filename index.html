@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>カレンダーチェック（クラウド同期）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      padding: 16px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    header h1 {
+      font-size: 1.2rem;
+      margin: 0;
+    }
+    header p {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin: 4px 0 0;
+    }
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0;
+      gap: 8px;
+    }
+    .month-label {
+      flex: 1;
+      text-align: center;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .month-label:hover {
+      background: #eff6ff;
+    }
+    .nav-btn {
+      border: none;
+      background: #e5e7eb;
+      border-radius: 999px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .nav-btn:active {
+      transform: translateY(1px);
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: 0.75rem;
+    }
+    .dow {
+      text-align: center;
+      font-weight: 600;
+      padding: 4px 0;
+      color: #6b7280;
+    }
+    .day {
+      background: #f9fafb;
+      border-radius: 10px;
+      min-height: 48px;
+      padding: 4px;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      transition: background 0.1s ease, transform 0.05s ease;
+      user-select: none;
+    }
+    .day:active {
+      transform: scale(0.97);
+    }
+    .day.empty {
+      background: transparent;
+      cursor: default;
+    }
+    .day-number {
+      font-size: 0.85rem;
+    }
+    .mark-icon {
+      margin-top: 4px;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    .mark-check { color: #16a34a; }
+    .mark-circle { color: #ef4444; }
+    .mark-double { color: #f97316; }
+    .today {
+      outline: 2px solid #3b82f6;
+      outline-offset: -2px;
+      background: #eff6ff;
+    }
+    .legend {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .legend-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+    .legend-icon.check { color: #16a34a; }
+    .legend-icon.circle { color: #ef4444; }
+    .legend-icon.double { color: #f97316; }
+
+    .mark-menu {
+      position: fixed;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      min-width: 140px;
+      z-index: 999;
+    }
+    .mark-menu button {
+      border: none;
+      background: transparent;
+      padding: 6px 8px;
+      text-align: left;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border-radius: 8px;
+      width: 100%;
+    }
+    .mark-menu button:hover {
+      background: #f3f4f6;
+    }
+    .mark-menu button span.icon { font-size: 1rem; }
+    .mark-menu button[data-mark="check"] span.icon { color: #16a34a; }
+    .mark-menu button[data-mark="circle"] span.icon { color: #ef4444; }
+    .mark-menu button[data-mark="double"] span.icon { color: #f97316; }
+    .mark-menu button[data-mark="none"] span.icon { color: #9ca3af; }
+
+    .hint {
+      margin-top: 8px;
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+
+    .month-picker-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .month-picker {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      width: 90%;
+      max-width: 320px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+    .month-picker h2 {
+      font-size: 1rem;
+      margin: 0 0 8px;
+      text-align: center;
+    }
+    .month-picker .row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .month-picker select {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+    }
+    .month-picker .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .month-picker button {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .btn-primary {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+  </style>
+
+  <!-- Firebase（compat版。この2つだけ読み込めばOK） -->
+  <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- ログインパネル -->
+    <div class="login-panel" style="margin-bottom: 12px; font-size: 0.85rem;">
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
+        <input id="userIdInput" placeholder="ユーザーID"
+               style="flex:1; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
+        <input id="pinInput" placeholder="PIN(数字など)" type="password"
+               style="width:110px; padding:4px 6px; border-radius:8px; border:1px solid #d1d5db;">
+        <button id="loginBtn"
+        onclick="alert('クリックテスト');"
+        style="padding:4px 10px; border:none; border-radius:999px; background:#3b82f6; color:#fff; cursor:pointer;">
+  ログイン/登録
+</button>
+      </div>
+      <div id="loginStatus" style="color:#6b7280;">未ログイン / 先にログインしてからマークできます</div>
+    </div>
+
+    <header>
+      <h1>カレンダーチェック</h1>
+      <p>タップで緑チェック / 長押し or 右クリックでマーク選択</p>
+    </header>
+
+    <div class="calendar-header">
+      <button class="nav-btn" id="prevMonth" aria-label="前の月">‹</button>
+      <div class="month-label" id="monthLabel"></div>
+      <button class="nav-btn" id="nextMonth" aria-label="次の月">›</button>
+    </div>
+
+    <div class="calendar-grid" id="calendarGrid"></div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-icon check">✓</div><span>チェック (緑)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-icon circle">○</div><span>丸 (赤)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-icon double">◎</div><span>二重丸 (オレンジ)</span>
+      </div>
+    </div>
+    <p class="hint">※ユーザーIDごとにクラウド保存されます（勉強用なのでPINは平文保存）。</p>
+  </div>
+
+  <!-- マーク選択メニュー -->
+  <div class="mark-menu" id="markMenu">
+    <button data-mark="check"><span class="icon">✓</span>チェック (緑)</button>
+    <button data-mark="circle"><span class="icon">○</span>丸 (赤)</button>
+    <button data-mark="double"><span class="icon">◎</span>二重丸 (オレンジ)</button>
+    <button data-mark="none"><span class="icon">×</span>マークを消す</button>
+  </div>
+
+  <!-- 年月ピッカー -->
+  <div class="month-picker-overlay" id="monthPickerOverlay">
+    <div class="month-picker">
+      <h2>年月を選択</h2>
+      <div class="row">
+        <select id="yearSelect"></select>
+        <select id="monthSelect">
+          <option value="1">1月</option>
+          <option value="2">2月</option>
+          <option value="3">3月</option>
+          <option value="4">4月</option>
+          <option value="5">5月</option>
+          <option value="6">6月</option>
+          <option value="7">7月</option>
+          <option value="8">8月</option>
+          <option value="9">9月</option>
+          <option value="10">10月</option>
+          <option value="11">11月</option>
+          <option value="12">12月</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary" id="monthPickerCancel">キャンセル</button>
+        <button class="btn-primary" id="monthPickerOK">決定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Firebase 初期化（ポテトのプロジェクト用） =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBSzlLXJnpoUv3qgyQsLknlY0CpvG3BwtQ",
+      authDomain: "calendar-check-cf2c2.firebaseapp.com",
+      projectId: "calendar-check-cf2c2",
+      storageBucket: "calendar-check-cf2c2.firebasestorage.app",
+      messagingSenderId: "912197897392",
+      appId: "1:912197897392:web:4737fbd6a71ba8022b3f75",
+      measurementId: "G-758FP6003T"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ===== アプリ用変数 =====
+    let marks = {};
+    let currentYear;
+    let currentMonth;
+    let longPressTimer = null;
+    let longPressTriggered = false;
+    const LONG_PRESS_MS = 500;
+
+    let currentUserId = null;
+    let currentPin = null; // ←セキュリティ的には弱いけど、勉強用ってことで割り切り
+
+    // ===== ログイン処理（ユーザーID + PIN） =====
+    function loginWithPin(userId, pin) {
+      if (!userId || !pin) {
+        alert("ユーザーIDとPINを両方入力してね");
+        return;
+      }
+
+      const docRef = db.collection("users").doc(userId);
+
+      docRef.get().then((snap) => {
+        if (!snap.exists) {
+          // 新規ユーザー
+          docRef.set({
+            pin: pin,
+            marks: {}
+          });
+          marks = {};
+          alert("新規ユーザーとして登録しました！");
+        } else {
+          const data = snap.data();
+          if (!data.pin) {
+            alert("このユーザーIDは古い形式のデータです。別のIDを使ってください。");
+            return;
+          }
+          if (data.pin !== pin) {
+            alert("PIN が違います");
+            return;
+          }
+          marks = data.marks || {};
+          alert("ログインしました！");
+        }
+
+        currentUserId = userId;
+        currentPin = pin;
+        updateLoginStatusUI();
+        renderCalendar(); // marksを反映
+      }).catch((e) => {
+        console.error(e);
+        alert("ログインでエラーが発生しました");
+      });
+    }
+
+    function updateLoginStatusUI() {
+      const status = document.getElementById("loginStatus");
+      if (!currentUserId) {
+        status.textContent = "未ログイン / 先にログインしてからマークできます";
+      } else {
+        status.textContent = `ログイン中：${currentUserId}（このIDでクラウド同期中）`;
+      }
+    }
+
+    function saveMarksToCloud() {
+      if (!currentUserId || !currentPin) return;
+      const docRef = db.collection("users").doc(currentUserId);
+      docRef.set(
+        { pin: currentPin, marks: marks },
+        { merge: true }
+      ).catch((e) => {
+        console.error("saveMarksToCloud error", e);
+      });
+    }
+
+    // ===== 共通関数 =====
+    function dateKey(year, month, day) {
+      const m = (month + 1).toString().padStart(2, "0");
+      const d = day.toString().padStart(2, "0");
+      return `${year}-${m}-${d}`;
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById("calendarGrid");
+      grid.innerHTML = "";
+
+      const dowNames = ["日","月","火","水","木","金","土"];
+      for (const name of dowNames) {
+        const el = document.createElement("div");
+        el.textContent = name;
+        el.className = "dow";
+        grid.appendChild(el);
+      }
+
+      const firstDay = new Date(currentYear, currentMonth, 1);
+      const firstDow = firstDay.getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const today = new Date();
+      const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+      for (let i = 0; i < firstDow; i++) {
+        const empty = document.createElement("div");
+        empty.className = "day empty";
+        grid.appendChild(empty);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement("div");
+        cell.className = "day";
+        const num = document.createElement("div");
+        num.className = "day-number";
+        num.textContent = day;
+        const icon = document.createElement("div");
+        icon.className = "mark-icon";
+        cell.appendChild(num);
+        cell.appendChild(icon);
+
+        const key = dateKey(currentYear, currentMonth, day);
+        cell.dataset.dateKey = key;
+
+        if (key === todayKey) {
+          cell.classList.add("today");
+        }
+
+        updateCellMark(cell, key);
+        attachPressHandlers(cell, key);
+        grid.appendChild(cell);
+      }
+
+      const monthLabel = document.getElementById("monthLabel");
+      monthLabel.textContent = `${currentYear}年 ${currentMonth + 1}月`;
+    }
+
+    function updateCellMark(cell, key) {
+      const icon = cell.querySelector(".mark-icon");
+      icon.textContent = "";
+      icon.classList.remove("mark-check","mark-circle","mark-double");
+      const mark = marks[key];
+      if (!mark) return;
+
+      if (mark === "check") {
+        icon.textContent = "✓";
+        icon.classList.add("mark-check");
+      } else if (mark === "circle") {
+        icon.textContent = "○";
+        icon.classList.add("mark-circle");
+      } else if (mark === "double") {
+        icon.textContent = "◎";
+        icon.classList.add("mark-double");
+      }
+    }
+
+    function toggleCheck(key) {
+      if (!currentUserId) {
+        alert("先にログインしてください");
+        return;
+      }
+      const current = marks[key];
+      if (current === "check") {
+        delete marks[key];
+      } else {
+        marks[key] = "check";
+      }
+      saveMarksToCloud();
+    }
+
+    function attachPressHandlers(cell, key) {
+      const start = (ev) => {
+        if (cell.classList.contains("empty")) return;
+        if (!currentUserId) {
+          if (ev.type === "mousedown" || ev.type === "touchstart") {
+            alert("先にログインしてください");
+          }
+          return;
+        }
+        if (ev.type === "mousedown" && ev.button !== 0) return;
+
+        longPressTriggered = false;
+        if (longPressTimer) clearTimeout(longPressTimer);
+        longPressTimer = setTimeout(() => {
+          longPressTriggered = true;
+          openMarkMenuForCell(cell, key);
+        }, LONG_PRESS_MS);
+      };
+
+      const cancel = (ev) => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+        if (!currentUserId || cell.classList.contains("empty")) return;
+
+        if (!longPressTriggered) {
+          if (ev && ev.type === "mouseup" && ev.button !== 0) return;
+          toggleCheck(key);
+          updateCellMark(cell, key);
+        }
+      };
+
+      const cancelOnly = () => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
+      cell.addEventListener("mousedown", start);
+      cell.addEventListener("touchstart", start, { passive: true });
+      cell.addEventListener("mouseup", cancel);
+      cell.addEventListener("mouseleave", cancelOnly);
+      cell.addEventListener("touchend", cancel);
+      cell.addEventListener("touchcancel", cancelOnly);
+
+      cell.addEventListener("contextmenu", (ev) => {
+        if (cell.classList.contains("empty")) return;
+        ev.preventDefault();
+        if (!currentUserId) {
+          alert("先にログインしてください");
+          return;
+        }
+        openMarkMenuForCell(cell, key);
+      });
+    }
+
+    const markMenu = document.getElementById("markMenu");
+
+    function openMarkMenuForCell(cell, key) {
+      if (!currentUserId) {
+        alert("先にログインしてください");
+        return;
+      }
+      const rect = cell.getBoundingClientRect();
+      markMenu.style.display = "flex";
+      let left = rect.left + window.scrollX;
+      let top = rect.bottom + window.scrollY + 4;
+      const menuWidth = 160;
+      if (left + menuWidth > window.scrollX + window.innerWidth) {
+        left = window.scrollX + window.innerWidth - menuWidth - 8;
+      }
+      markMenu.style.left = left + "px";
+      markMenu.style.top = top + "px";
+      markMenu.dataset.dateKey = key;
+    }
+
+    function closeMarkMenu() {
+      markMenu.style.display = "none";
+      delete markMenu.dataset.dateKey;
+    }
+
+    markMenu.addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button");
+      if (!btn) return;
+      const mark = btn.dataset.mark;
+      const key = markMenu.dataset.dateKey;
+      if (!key || !currentUserId) return;
+
+      if (mark === "none") {
+        delete marks[key];
+      } else {
+        marks[key] = mark;
+      }
+      saveMarksToCloud();
+      const cell = document.querySelector(`.day[data-date-key="${key}"]`);
+      if (cell) updateCellMark(cell, key);
+      closeMarkMenu();
+    });
+
+    document.addEventListener("click", (ev) => {
+      if (markMenu.style.display === "flex") {
+        const inside = ev.target.closest("#markMenu");
+        if (!inside) closeMarkMenu();
+      }
+    });
+
+    const MIN_YEAR = 2000;
+    const MAX_YEAR = 2100;
+
+    function openMonthPicker() {
+      const overlay = document.getElementById("monthPickerOverlay");
+      const yearSelect = document.getElementById("yearSelect");
+      const monthSelect = document.getElementById("monthSelect");
+
+      if (!yearSelect.dataset.initialized) {
+        for (let y = MIN_YEAR; y <= MAX_YEAR; y++) {
+          const opt = document.createElement("option");
+          opt.value = String(y);
+          opt.textContent = `${y}年`;
+          yearSelect.appendChild(opt);
+        }
+        yearSelect.dataset.initialized = "1";
+      }
+
+      yearSelect.value = String(currentYear);
+      monthSelect.value = String(currentMonth + 1);
+      overlay.style.display = "flex";
+    }
+
+    function closeMonthPicker() {
+      document.getElementById("monthPickerOverlay").style.display = "none";
+    }
+
+    document.getElementById("monthLabel").addEventListener("click", openMonthPicker);
+    document.getElementById("monthPickerCancel").addEventListener("click", closeMonthPicker);
+    document.getElementById("monthPickerOK").addEventListener("click", () => {
+      const year = parseInt(document.getElementById("yearSelect").value, 10);
+      const month = parseInt(document.getElementById("monthSelect").value, 10) - 1;
+      if (!isNaN(year) && !isNaN(month)) {
+        currentYear = year;
+        currentMonth = month;
+        renderCalendar();
+      }
+      closeMonthPicker();
+    });
+
+    document.getElementById("monthPickerOverlay").addEventListener("click", (ev) => {
+      if (ev.target.id === "monthPickerOverlay") closeMonthPicker();
+    });
+
+    document.getElementById("prevMonth").addEventListener("click", () => {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    });
+
+    document.getElementById("nextMonth").addEventListener("click", () => {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar();
+    });
+
+    function setupLoginUI() {
+      const userIdInput = document.getElementById("userIdInput");
+      const pinInput = document.getElementById("pinInput");
+      const loginBtn = document.getElementById("loginBtn");
+
+      loginBtn.addEventListener("click", () => {
+        const userId = userIdInput.value.trim();
+        const pin = pinInput.value.trim();
+        loginWithPin(userId, pin);
+      });
+    }
+
+    function init() {
+      const now = new Date();
+      currentYear = now.getFullYear();
+      currentMonth = now.getMonth();
+      updateLoginStatusUI();
+      setupLoginUI();
+      renderCalendar();
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>

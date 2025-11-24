@@ -404,11 +404,13 @@ body.theme-notebook #monthLabel::after {
   color: #111827;
 }
 
-.day.sun .day-number {
-  color: #b91c1c;
+/* 土日・祝日の日付色 */
+.day.sun .day-number,
+.day.holiday .day-number {
+  color: #f97373; /* 薄めの赤 */
 }
 .day.sat .day-number {
-  color: #1d4ed8;
+  color: #60a5fa; /* 薄めの青 */
 }
 
 .day.today {
@@ -424,6 +426,15 @@ body.theme-notebook #monthLabel::after {
 .day.selected {
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6);
   border-color: #2563eb;
+}
+
+/* 祝日名ラベル */
+.holiday-label {
+  font-size: 0.6rem;
+  color: #f97373;
+  margin-top: 1px;
+  line-height: 1.1;
+  text-align: center;
 }
 
 .mark-icon {
@@ -869,11 +880,16 @@ body.theme-dark .calendar-grid .day-number {
   color: #e5e7eb;
 }
 
-body.theme-dark .calendar-grid .day.sun .day-number {
+body.theme-dark .calendar-grid .day.sun .day-number,
+body.theme-dark .calendar-grid .day.holiday .day-number {
   color: #fecaca;
 }
 body.theme-dark .calendar-grid .day.sat .day-number {
   color: #bfdbfe;
+}
+
+body.theme-dark .holiday-label {
+  color: #fecaca;
 }
 
 body.theme-dark .calendar-grid .day.today {
@@ -1077,7 +1093,7 @@ body.theme-dark #toast {
             <button id="todayBtn" class="today-btn" type="button">今日へ</button>
           </div>
           <div class="calendar-grid" id="calendarGrid"></div>
-          <!-- ここに凡例バー & 選択中情報がJSで挿入される -->
+          <!-- 凡例 & 選択中情報はJSで挿入 -->
         </div>
       </section>
     </main>
@@ -1962,6 +1978,50 @@ function updateSelectedInfo() {
   infoEl.appendChild(textSpan);
 }
 
+// ===== 祝日判定（日本の主な祝日） =====
+function getHolidayName(year, month, day) {
+  const m = month + 1;
+  const key = `${m}-${day}`;
+  const fixed = {
+    "1-1": "元日",
+    "2-11": "建国記念の日",
+    "2-23": "天皇誕生日",
+    "4-29": "昭和の日",
+    "5-3": "憲法記念日",
+    "5-4": "みどりの日",
+    "5-5": "こどもの日",
+    "8-11": "山の日",
+    "11-3": "文化の日",
+    "11-23": "勤労感謝の日"
+  };
+  if (fixed[key]) return fixed[key];
+
+  // ハッピーマンデー系
+  function getNthWeekdayOfMonth(year, monthZero, weekday, nth) {
+    let count = 0;
+    for (let d = 1; d <= 31; d++) {
+      const dt = new Date(year, monthZero, d);
+      if (dt.getMonth() !== monthZero) break;
+      if (dt.getDay() === weekday) {
+        count++;
+        if (count === nth) return d;
+      }
+    }
+    return null;
+  }
+
+  // 成人の日: 1月第2月曜
+  if (m === 1 && day === getNthWeekdayOfMonth(year, 0, 1, 2)) return "成人の日";
+  // 海の日: 7月第3月曜
+  if (m === 7 && day === getNthWeekdayOfMonth(year, 6, 1, 3)) return "海の日";
+  // 敬老の日: 9月第3月曜
+  if (m === 9 && day === getNthWeekdayOfMonth(year, 8, 1, 3)) return "敬老の日";
+  // スポーツの日: 10月第2月曜
+  if (m === 10 && day === getNthWeekdayOfMonth(year, 9, 1, 2)) return "スポーツの日";
+
+  return "";
+}
+
 // ===== カレンダー描画 =====
 function dateKey(year, month, day) {
   const m = (month + 1).toString().padStart(2, "0");
@@ -1999,12 +2059,19 @@ function renderCalendar() {
   for (let day = 1; day <= daysInMonth; day++) {
     const cell = document.createElement("div");
     cell.className = "day";
+
     const num = document.createElement("div");
     num.className = "day-number";
     num.textContent = day;
+
+    const holidayLabel = document.createElement("div");
+    holidayLabel.className = "holiday-label";
+
     const icon = document.createElement("div");
     icon.className = "mark-icon";
+
     cell.appendChild(num);
+    cell.appendChild(holidayLabel);
     cell.appendChild(icon);
 
     const key = dateKey(currentYear, currentMonth, day);
@@ -2013,6 +2080,13 @@ function renderCalendar() {
     const dow = (firstDow + (day - 1)) % 7;
     if (dow === 0) cell.classList.add("sun");
     else if (dow === 6) cell.classList.add("sat");
+
+    // 祝日判定
+    const holidayName = getHolidayName(currentYear, currentMonth, day);
+    if (holidayName) {
+      cell.classList.add("holiday");
+      holidayLabel.textContent = holidayName;
+    }
 
     if (key === todayKey) {
       cell.classList.add("today");
@@ -2090,7 +2164,6 @@ function animateCalendar(direction) {
   const grid = document.getElementById("calendarGrid");
   if (!grid) return;
   grid.classList.remove("anim-left", "anim-right", "anim-fade");
-  // 再適用用にリフロー
   void grid.offsetWidth;
   if (direction === "left") {
     grid.classList.add("anim-left");
@@ -2782,7 +2855,6 @@ function init() {
   updateLoginStatusUI();
   updateSelectedInfo();
 
-  // ローカルセッションから自動ログイン
   tryAutoLoginFromLocal();
 }
 

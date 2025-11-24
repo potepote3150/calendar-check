@@ -45,6 +45,23 @@ button {
   user-select: auto;
 }
 
+/* ===== テーマ切り替え時のふわっとアニメーション ===== */
+body,
+.app,
+.calendar-card,
+.login-panel,
+.subview,
+.day,
+.settings-menu,
+.mark-menu,
+#monthLabel {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
 .app {
   position: relative;
   max-width: 960px;
@@ -931,6 +948,37 @@ body.theme-dark .mark-menu button:hover {
   background: rgba(15, 23, 42, 0.35);
 }
 
+/* ===== トースト通知 ===== */
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%) translateY(120%);
+  background: rgba(15, 23, 42, 0.94);
+  color: #f9fafb;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 60;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* テーマ別トースト色微調整 */
+body.theme-notebook #toast {
+  background: rgba(120, 53, 15, 0.96);
+}
+body.theme-dark #toast {
+  background: rgba(15, 23, 42, 0.96);
+}
+
 /* レスポンシブ */
 @media (max-width: 640px) {
   .app {
@@ -953,10 +1001,6 @@ body.theme-dark .mark-menu button:hover {
 
   .day {
     min-height: 46px;
-  }
-
-  .mark-settings-grid {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .settings-btn {
@@ -1149,8 +1193,13 @@ body.theme-dark .mark-menu button:hover {
     </section>
   </div>
 
+  <!-- トースト通知 -->
+  <div id="toast"></div>
+
+  <!-- マーク選択メニュー -->
   <div class="mark-menu" id="markMenu"></div>
 
+  <!-- 年月ピッカー -->
   <div class="month-picker-overlay" id="monthPickerOverlay">
     <div class="month-picker-panel">
       <h3>年月を選択</h3>
@@ -1216,9 +1265,24 @@ let selectedDateKey = null;
 // ローカルセッション保持用キー
 const SESSION_KEY = "calendarCheckSession";
 
+// ===== トースト通知 =====
+function showToast(message, duration = 2200) {
+  const el = document.getElementById("toast");
+  if (!el) {
+    alert(message);
+    return;
+  }
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => {
+    el.classList.remove("show");
+  }, duration);
+}
+
 function showLoginRequiredHint() {
   if (!loginHintShown) {
-    alert("先にログインしてください");
+    showToast("先にログインしてください");
     loginHintShown = true;
   }
 }
@@ -1483,7 +1547,7 @@ async function registerUser(userId, pin) {
     updateSelectedInfo();
     clearAccountInputs();
 
-    alert("新規登録が完了し、このIDでログインしました！");
+    showToast("新規登録が完了しました");
   } catch (e) {
     console.error(e);
     alert("新規登録でエラーが発生しました");
@@ -1526,7 +1590,7 @@ function loginUser(userId, pin) {
     setSelectedDate(null);
     updateSelectedInfo();
     clearAccountInputs();
-    alert("ログインに成功しました！");
+    showToast("ログインに成功しました");
   }).catch((e) => {
     console.error(e);
     alert("ログインでエラーが発生しました");
@@ -1561,7 +1625,7 @@ function logoutUser() {
   renderLegendBar();
   updateSelectedInfo();
 
-  alert("ログアウトしました");
+  showToast("ログアウトしました");
 }
 
 // ===== アカウント情報更新 =====
@@ -1639,7 +1703,7 @@ async function updateAccountInfo() {
     renderCalendar();
     renderLegendBar();
     updateSelectedInfo();
-    alert("アカウント情報を更新しました");
+    showToast("アカウント情報を更新しました");
   } catch (e) {
     console.error(e);
     alert("アカウント更新時にエラーが発生しました");
@@ -1698,7 +1762,7 @@ async function deleteAccount() {
     renderLegendBar();
     updateSelectedInfo();
 
-    alert("アカウントを削除しました");
+    showToast("アカウントを削除しました");
   } catch (e) {
     console.error(e);
     alert("アカウント削除中にエラーが発生しました");
@@ -2605,7 +2669,7 @@ function setupLoginUI() {
       renderCalendar();
       renderLegendBar();
       updateSelectedInfo();
-      alert("マーク設定を保存しました");
+      showToast("マーク設定を保存しました");
     });
   }
 

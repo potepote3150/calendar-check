@@ -612,6 +612,7 @@
       return { defs, mainId, subs };
     }
 
+    // （昔のデータのマイグレーション用）
     function ensureDefaultMarksIfEmpty() {
       if (!markDefinitions || Object.keys(markDefinitions).length === 0) {
         const base = getDefaultMarkSetup();
@@ -665,7 +666,7 @@
         showLoginRequiredHint();
         return;
       }
-      ensureDefaultMarksIfEmpty();
+      // データはそのまま、UIだけ描画
       renderMarkSettingsUI();
       showView("marks");
     }
@@ -733,7 +734,6 @@
         currentPin = data.pin;
         loginHintShown = false;
         loadUserStateFromData(data, docRef);
-        ensureDefaultMarksIfEmpty();
         updateLoginStatusUI();
         showMainView();
         renderCalendar();
@@ -880,7 +880,6 @@
         currentPin = data.pin;
         loginHintShown = false;
         loadUserStateFromData(data, docRef);
-        ensureDefaultMarksIfEmpty();
         saveSessionToLocal();   // ★ セッション保存
         updateLoginStatusUI();
         showMainView();
@@ -1162,7 +1161,7 @@
 
     function toggleMainMarkOnDate(key) {
       if (!currentUserId) return;
-      ensureDefaultMarksIfEmpty();
+
       if (!mainMarkId || !markDefinitions[mainMarkId]) {
         alert("メインマークが設定されていません。設定画面から登録してください。");
         return;
@@ -1248,7 +1247,6 @@
 
     function buildMarkMenuItems() {
       markMenu.innerHTML = "";
-      ensureDefaultMarksIfEmpty();
 
       let hasSub = false;
       for (let i = 1; i <= 10; i++) {
@@ -1429,14 +1427,14 @@
       }
     }
 
-    function renderMarkSettingsUI() {
-      ensureDefaultMarksIfEmpty();
-
+    // selectedState: { main: string, subs: { "1": string, ... } } 省略可
+    function renderMarkSettingsUI(selectedState) {
       const mainSelect = document.getElementById("mainMarkSelect");
       const unusedList = document.getElementById("unusedMarksList");
 
       const allIds = Object.keys(markDefinitions);
 
+      // メイン選択肢
       mainSelect.innerHTML = "";
       const ph = document.createElement("option");
       ph.value = "";
@@ -1453,10 +1451,15 @@
         }
         mainSelect.appendChild(opt);
       });
-      if (mainMarkId && markDefinitions[mainMarkId]) {
+
+      const desiredMain = selectedState && selectedState.main;
+      if (desiredMain && markDefinitions[desiredMain]) {
+        mainSelect.value = desiredMain;
+      } else if (mainMarkId && markDefinitions[mainMarkId]) {
         mainSelect.value = mainMarkId;
       }
 
+      // サブ選択肢
       for (let i = 1; i <= 10; i++) {
         const sel = document.getElementById("subMarkSelect" + i);
         if (!sel) continue;
@@ -1477,29 +1480,29 @@
           sel.appendChild(opt);
         });
 
+        const desiredSub =
+          selectedState &&
+          selectedState.subs &&
+          selectedState.subs[String(i)];
         const currentId = subMarkIds[String(i)];
-        if (currentId && markDefinitions[currentId]) {
+
+        if (desiredSub && markDefinitions[desiredSub]) {
+          sel.value = desiredSub;
+        } else if (currentId && markDefinitions[currentId]) {
           sel.value = currentId;
         }
       }
 
+      // マーク一覧（デフォルトも含めて全部表示）
       unusedList.innerHTML = "";
-      const used = new Set();
-      if (mainMarkId) used.add(mainMarkId);
-      Object.values(subMarkIds).forEach((id) => {
-        if (id) used.add(id);
-      });
-
-      const unusedIds = allIds.filter((id) => !used.has(id));
-
-      if (unusedIds.length === 0) {
+      if (allIds.length === 0) {
         const msg = document.createElement("span");
-        msg.textContent = "未割り当てのマークはありません。";
+        msg.textContent = "マークがまだありません。先にマークを追加してください。";
         msg.style.fontSize = "0.8rem";
         msg.style.color = "#6b7280";
         unusedList.appendChild(msg);
       } else {
-        unusedIds.forEach((id) => {
+        allIds.forEach((id) => {
           const def = markDefinitions[id];
 
           const label = document.createElement("label");
@@ -1624,6 +1627,7 @@
             return;
           }
 
+          // 同じ見た目（icon + color）の重複チェック
           for (const def of Object.values(markDefinitions)) {
             if (def.icon === icon && (def.color || "#111827") === color) {
               alert("同じ見た目のマークが既に存在します。");
@@ -1631,10 +1635,21 @@
             }
           }
 
+          // ★ 現在のメイン/サブ選択状態を保持してから再描画
+          const selectedState = { main: "", subs: {} };
+          const mainSel = document.getElementById("mainMarkSelect");
+          if (mainSel) selectedState.main = mainSel.value || "";
+          for (let i = 1; i <= 10; i++) {
+            const sel = document.getElementById("subMarkSelect" + i);
+            if (sel) {
+              selectedState.subs[String(i)] = sel.value || "";
+            }
+          }
+
           const id = generateMarkId();
           markDefinitions[id] = { icon, color };
           iconInput.value = "";
-          renderMarkSettingsUI();
+          renderMarkSettingsUI(selectedState);
         });
       }
 
@@ -1694,25 +1709,53 @@
           const idsToDelete = Array.from(checked).map((cb) => cb.dataset.markId);
           const idsSet = new Set(idsToDelete);
 
-          let affectedCount = 0;
+          let affectedCalendarCount = 0;
           for (const key in marks) {
             if (idsSet.has(marks[key])) {
-              affectedCount++;
+              affectedCalendarCount++;
+            }
+          }
+
+          let affectsMainOrSub = false;
+          if (mainMarkId && idsSet.has(mainMarkId)) {
+            affectsMainOrSub = true;
+          }
+          for (let i = 1; i <= 10; i++) {
+            const sid = subMarkIds[String(i)];
+            if (sid && idsSet.has(sid)) {
+              affectsMainOrSub = true;
+              break;
             }
           }
 
           let msg = "選択したマークを削除します。";
-          if (affectedCount > 0) {
-            msg += `\n\n※カレンダー上でこれらのマークが使われている日（${affectedCount} 日分）は空白に戻ります。`;
+          if (affectedCalendarCount > 0) {
+            msg += `\n\n※カレンダー上でこれらのマークが使われている日（${affectedCalendarCount} 日分）は空白に戻ります。`;
+          }
+          if (affectsMainOrSub) {
+            msg += "\n※メイン / サブに使われているマークは「未設定」に戻ります。";
           }
           if (!confirm(msg)) return;
 
+          // カレンダー上のマークを空欄へ
           for (const key in marks) {
             if (idsSet.has(marks[key])) {
               delete marks[key];
             }
           }
 
+          // メイン / サブで使っている場合は未設定に戻す
+          if (mainMarkId && idsSet.has(mainMarkId)) {
+            mainMarkId = null;
+          }
+          for (let i = 1; i <= 10; i++) {
+            const sid = subMarkIds[String(i)];
+            if (sid && idsSet.has(sid)) {
+              delete subMarkIds[String(i)];
+            }
+          }
+
+          // 定義自体を削除
           idsToDelete.forEach((id) => {
             delete markDefinitions[id];
           });

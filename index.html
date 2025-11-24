@@ -40,12 +40,13 @@ body {
 
 input,
 select,
-button {
+button,
+textarea {
   -webkit-user-select: auto;
   user-select: auto;
 }
 
-/* ===== テーマ切り替え時のふわっとアニメーション ===== */
+/* ===== テーマ切り替え時のアニメーション ===== */
 body,
 .app,
 .calendar-card,
@@ -194,12 +195,6 @@ body,
 
 .settings-section:last-child {
   margin-bottom: 0;
-}
-
-.settings-label {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-bottom: 2px;
 }
 
 .settings-menu button {
@@ -407,10 +402,10 @@ body.theme-notebook #monthLabel::after {
 /* 土日・祝日の日付色 */
 .day.sun .day-number,
 .day.holiday .day-number {
-  color: #f97373; /* 薄めの赤 */
+  color: #f97373;
 }
 .day.sat .day-number {
-  color: #60a5fa; /* 薄めの青 */
+  color: #60a5fa;
 }
 
 .day.today {
@@ -437,6 +432,17 @@ body.theme-notebook #monthLabel::after {
   text-align: center;
 }
 
+/* メモありインジケーター（📝） */
+.memo-indicator {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: 0.7rem;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* マークアイコン */
 .mark-icon {
   margin-top: auto;
   font-size: 1rem;
@@ -473,6 +479,57 @@ body.theme-notebook #monthLabel::after {
   padding: 4px 8px;
   border-radius: 9999px;
   background: #eff6ff;
+}
+
+/* メモエリア */
+.memo-container {
+  display: none;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+}
+
+.memo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+#memoTextarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  box-sizing: border-box;
+}
+
+.memo-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.memo-buttons button {
+  font-size: 0.8rem;
+  border-radius: 9999px;
+  padding: 4px 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.memo-hint {
+  margin-top: 4px;
+  font-size: 0.7rem;
 }
 
 /* サブビュー共通 */
@@ -518,6 +575,11 @@ body.theme-notebook #monthLabel::after {
   margin-top: 8px;
 }
 
+/* 汎用ボタン */
+button {
+  font-family: inherit;
+}
+
 button.primary {
   background: #2563eb;
   color: #ffffff;
@@ -532,11 +594,6 @@ button.danger-outline {
   border: 1px solid #ef4444;
   color: #b91c1c;
   background: #fef2f2;
-}
-
-/* 汎用ボタンリセット */
-button {
-  font-family: inherit;
 }
 
 button:disabled {
@@ -918,6 +975,30 @@ body.theme-dark .today-btn.today-active {
   color: #fed7aa;
 }
 
+/* ダーク時のメモエリア */
+body.theme-dark .memo-container {
+  background: #020617;
+  border-color: #1e293b;
+}
+
+body.theme-dark #memoTextarea {
+  background: #020617;
+  border-color: #1e293b;
+  color: #e5e7eb;
+}
+
+body.theme-dark .memo-header {
+  color: #e5e7eb;
+}
+
+body.theme-dark .memo-hint {
+  color: #9ca3af;
+}
+
+body.theme-dark .memo-indicator {
+  opacity: 0.95;
+}
+
 /* ダーク時の設定メニュー & マークメニュー */
 body.theme-dark .settings-menu {
   background: #1e3a8a;
@@ -1093,7 +1174,7 @@ body.theme-dark #toast {
             <button id="todayBtn" class="today-btn" type="button">今日へ</button>
           </div>
           <div class="calendar-grid" id="calendarGrid"></div>
-          <!-- 凡例 & 選択中情報はJSで挿入 -->
+          <!-- この下に凡例・選択中日付・メモエリアをJSで差し込む -->
         </div>
       </section>
     </main>
@@ -1263,6 +1344,7 @@ let marks = {};                // "yyyy-mm-dd" -> markId
 let markDefinitions = {};      // markId -> { icon, color }
 let mainMarkId = null;         // タップ時に使うマークID
 let subMarkIds = {};           // "1"〜"10" -> markId
+let dayMemos = {};             // "yyyy-mm-dd" -> string
 
 let currentYear;
 let currentMonth;
@@ -1275,11 +1357,14 @@ let currentPin = null; // パスワード
 let loginHintShown = false;
 let currentTheme = "light";
 
-// ★ 選択中の日付
+// 選択中の日付
 let selectedDateKey = null;
 
 // ローカルセッション保持用キー
 const SESSION_KEY = "calendarCheckSession";
+
+// メモUIセットアップ済みフラグ
+let memoUIInitialized = false;
 
 // ===== トースト通知 =====
 function showToast(message, duration = 2200) {
@@ -1442,6 +1527,7 @@ function tryAutoLoginFromLocal() {
     renderLegendBar();
     setSelectedDate(null);
     updateSelectedInfo();
+    updateMemoEditor();
   }).catch((e) => {
     console.error("自動ログインに失敗しました", e);
   });
@@ -1455,6 +1541,7 @@ function loadUserStateFromData(data, docRef) {
   let defs = data.markDefinitions;
   let mainId = data.mainMarkId;
   let subs = data.subMarkIds || {};
+  let memos = data.dayMemos || {};
   currentTheme = data.theme || "light";
 
   if (!defs) {
@@ -1485,6 +1572,7 @@ function loadUserStateFromData(data, docRef) {
   markDefinitions = defs;
   mainMarkId = mainId || null;
   subMarkIds = subs || {};
+  dayMemos = memos || {};
 
   applyTheme();
 
@@ -1495,7 +1583,8 @@ function loadUserStateFromData(data, docRef) {
         markDefinitions,
         mainMarkId,
         subMarkIds,
-        theme: currentTheme
+        theme: currentTheme,
+        dayMemos
       },
       { merge: true }
     ).catch((e) => console.error("migration save error", e));
@@ -1513,7 +1602,8 @@ function saveUserStateToCloud() {
     markDefinitions,
     mainMarkId,
     subMarkIds,
-    theme: currentTheme
+    theme: currentTheme,
+    dayMemos
   }).catch((e) => console.error("saveUserStateToCloud error", e));
 }
 
@@ -1538,15 +1628,17 @@ async function registerUser(userId, pin) {
     markDefinitions = base.defs;
     mainMarkId = base.mainId;
     subMarkIds = base.subs;
+    dayMemos = {};
     currentTheme = "light";
 
     await docRef.set({
       pin: pin,
-      marks: marks,
-      markDefinitions: markDefinitions,
-      mainMarkId: mainMarkId,
-      subMarkIds: subMarkIds,
-      theme: currentTheme
+      marks,
+      markDefinitions,
+      mainMarkId,
+      subMarkIds,
+      theme: currentTheme,
+      dayMemos
     });
 
     currentUserId = userId;
@@ -1561,6 +1653,7 @@ async function registerUser(userId, pin) {
     renderLegendBar();
     setSelectedDate(null);
     updateSelectedInfo();
+    updateMemoEditor();
     clearAccountInputs();
 
     showToast("新規登録が完了しました");
@@ -1605,6 +1698,7 @@ function loginUser(userId, pin) {
     renderLegendBar();
     setSelectedDate(null);
     updateSelectedInfo();
+    updateMemoEditor();
     clearAccountInputs();
     showToast("ログインに成功しました");
   }).catch((e) => {
@@ -1623,11 +1717,12 @@ function logoutUser() {
   markDefinitions = {};
   mainMarkId = null;
   subMarkIds = {};
+  dayMemos = {};
   loginHintShown = false;
+  selectedDateKey = null;
   clearSessionFromLocal();
   currentTheme = "light";
   applyTheme();
-  selectedDateKey = null;
 
   const userIdInput = document.getElementById("userIdInput");
   const pinInput = document.getElementById("pinInput");
@@ -1640,6 +1735,7 @@ function logoutUser() {
   renderCalendar();
   renderLegendBar();
   updateSelectedInfo();
+  updateMemoEditor();
 
   showToast("ログアウトしました");
 }
@@ -1692,11 +1788,12 @@ async function updateAccountInfo() {
 
       await newDocRef.set({
         pin: targetPin,
-        marks: marks,
-        markDefinitions: markDefinitions,
-        mainMarkId: mainMarkId,
-        subMarkIds: subMarkIds,
-        theme: currentTheme
+        marks,
+        markDefinitions,
+        mainMarkId,
+        subMarkIds,
+        theme: currentTheme,
+        dayMemos
       });
 
       await usersCol.doc(currentUserId).delete();
@@ -1719,6 +1816,7 @@ async function updateAccountInfo() {
     renderCalendar();
     renderLegendBar();
     updateSelectedInfo();
+    updateMemoEditor();
     showToast("アカウント情報を更新しました");
   } catch (e) {
     console.error(e);
@@ -1758,6 +1856,7 @@ async function deleteAccount() {
     markDefinitions = {};
     mainMarkId = null;
     subMarkIds = {};
+    dayMemos = {};
     currentUserId = null;
     currentPin = null;
     loginHintShown = false;
@@ -1777,6 +1876,7 @@ async function deleteAccount() {
     renderCalendar();
     renderLegendBar();
     updateSelectedInfo();
+    updateMemoEditor();
 
     showToast("アカウントを削除しました");
   } catch (e) {
@@ -1834,7 +1934,7 @@ function updateLoginStatusUI() {
   }
 }
 
-// ===== 凡例と選択中日付用のUIを動的に足す =====
+// ===== 凡例と選択中日付・メモ用のUIを動的に足す =====
 function ensureExtraUI() {
   const grid = document.getElementById("calendarGrid");
   if (!grid) return;
@@ -1864,6 +1964,31 @@ function ensureExtraUI() {
       legend.parentNode.appendChild(selectedInfo);
     }
   }
+
+  let memoContainer = document.getElementById("memoContainer");
+  if (!memoContainer) {
+    memoContainer = document.createElement("div");
+    memoContainer.id = "memoContainer";
+    memoContainer.className = "memo-container";
+    memoContainer.innerHTML = `
+      <div class="memo-header">
+        <span id="memoDateLabel"></span>
+      </div>
+      <textarea id="memoTextarea" placeholder="この日のメモを書いて保存できます"></textarea>
+      <div class="memo-buttons">
+        <button id="memoClearBtn" type="button">メモをクリア</button>
+        <button id="memoSaveBtn" type="button" class="primary">メモを保存</button>
+      </div>
+      <p class="hint memo-hint">※メモはこのユーザーIDごとにクラウド保存されます。</p>
+    `;
+    if (selectedInfo.nextSibling) {
+      selectedInfo.parentNode.insertBefore(memoContainer, selectedInfo.nextSibling);
+    } else {
+      selectedInfo.parentNode.appendChild(memoContainer);
+    }
+  }
+
+  setupMemoUI();
 }
 
 // ===== マーク凡例の描画 =====
@@ -1933,6 +2058,7 @@ function setSelectedDate(key) {
   }
 
   updateSelectedInfo();
+  updateMemoEditor();
 }
 
 function updateSelectedInfo() {
@@ -1955,31 +2081,76 @@ function updateSelectedInfo() {
   labelSpan.textContent = `${dateText}：`;
 
   const markId = marks[selectedDateKey];
+  const memoText = dayMemos[selectedDateKey];
+  const hasMemo = memoText && memoText.trim().length > 0;
+
+  const parts = [];
+
   if (!markId || !markDefinitions[markId]) {
-    const noSpan = document.createElement("span");
-    noSpan.textContent = "マークなし";
+    parts.push("マークなし");
+  } else {
+    const def = markDefinitions[markId];
+    const iconSpan = document.createElement("span");
+    iconSpan.textContent = def.icon || "";
+    if (def.color) iconSpan.style.color = def.color;
+    iconSpan.style.margin = "0 4px 0 2px";
+
     infoEl.appendChild(labelSpan);
-    infoEl.appendChild(noSpan);
+    infoEl.appendChild(iconSpan);
+
+    const textSpan = document.createElement("span");
+    textSpan.textContent = "マークあり";
+    infoEl.appendChild(textSpan);
+
+    if (hasMemo) {
+      const memoSpan = document.createElement("span");
+      memoSpan.textContent = "・メモあり";
+      memoSpan.style.marginLeft = "4px";
+      infoEl.appendChild(memoSpan);
+    } else {
+      const memoSpan = document.createElement("span");
+      memoSpan.textContent = "・メモなし";
+      memoSpan.style.marginLeft = "4px";
+      infoEl.appendChild(memoSpan);
+    }
     return;
   }
 
-  const def = markDefinitions[markId];
-
-  const iconSpan = document.createElement("span");
-  iconSpan.textContent = def.icon || "";
-  iconSpan.style.marginRight = "4px";
-  if (def.color) iconSpan.style.color = def.color;
-
-  const textSpan = document.createElement("span");
-  textSpan.textContent = "マークあり";
-
+  // マークなしの場合
+  const markSpan = document.createElement("span");
+  markSpan.textContent = parts.join(" ");
   infoEl.appendChild(labelSpan);
-  infoEl.appendChild(iconSpan);
-  infoEl.appendChild(textSpan);
+  infoEl.appendChild(markSpan);
+
+  const memoSpan = document.createElement("span");
+  memoSpan.textContent = hasMemo ? " ・メモあり" : " ・メモなし";
+  memoSpan.style.marginLeft = "4px";
+  infoEl.appendChild(memoSpan);
 }
 
-// ===== 祝日判定（日本の主な祝日） =====
-function getHolidayName(year, month, day) {
+// ===== メモエディタ更新 =====
+function updateMemoEditor() {
+  const container = document.getElementById("memoContainer");
+  const textarea = document.getElementById("memoTextarea");
+  const dateLabel = document.getElementById("memoDateLabel");
+
+  if (!container || !textarea || !dateLabel) return;
+
+  if (!currentUserId || !selectedDateKey) {
+    container.style.display = "none";
+    return;
+  }
+
+  container.style.display = "block";
+  const [y, m, d] = selectedDateKey.split("-");
+  dateLabel.textContent = `${y}年${parseInt(m, 10)}月${parseInt(d, 10)}日のメモ`;
+
+  textarea.value = dayMemos[selectedDateKey] || "";
+}
+
+// ===== 祝日判定（ベース） =====
+function getBaseHolidayName(year, month, day) {
+  // month: 0-11
   const m = month + 1;
   const key = `${m}-${day}`;
   const fixed = {
@@ -1996,7 +2167,6 @@ function getHolidayName(year, month, day) {
   };
   if (fixed[key]) return fixed[key];
 
-  // ハッピーマンデー系
   function getNthWeekdayOfMonth(year, monthZero, weekday, nth) {
     let count = 0;
     for (let d = 1; d <= 31; d++) {
@@ -2018,6 +2188,31 @@ function getHolidayName(year, month, day) {
   if (m === 9 && day === getNthWeekdayOfMonth(year, 8, 1, 3)) return "敬老の日";
   // スポーツの日: 10月第2月曜
   if (m === 10 && day === getNthWeekdayOfMonth(year, 9, 1, 2)) return "スポーツの日";
+
+  return "";
+}
+
+// ===== 祝日判定（振替休日込み） =====
+function getHolidayName(year, month, day) {
+  // month: 0-11
+  const base = getBaseHolidayName(year, month, day);
+  if (base) return base;
+
+  const today = new Date(year, month, day);
+  const dow = today.getDay();
+  if (dow === 0) {
+    // 日曜でベース祝日なし → 振替対象にはならない
+    return "";
+  }
+
+  // 1日前が「日曜の祝日」だったら振替休日
+  const prev = new Date(year, month, day - 1);
+  const basePrev = getBaseHolidayName(prev.getFullYear(), prev.getMonth(), prev.getDate());
+  if (basePrev && prev.getDay() === 0) {
+    // 本来はここで「前日もすでに祝日だった場合のチェーン」等も見るが、
+    // このアプリでは簡易的に1日分だけを見る。
+    return "振替休日";
+  }
 
   return "";
 }
@@ -2070,9 +2265,13 @@ function renderCalendar() {
     const icon = document.createElement("div");
     icon.className = "mark-icon";
 
+    const memoIndicator = document.createElement("div");
+    memoIndicator.className = "memo-indicator";
+
     cell.appendChild(num);
     cell.appendChild(holidayLabel);
     cell.appendChild(icon);
+    cell.appendChild(memoIndicator);
 
     const key = dateKey(currentYear, currentMonth, day);
     cell.dataset.dateKey = key;
@@ -2081,7 +2280,7 @@ function renderCalendar() {
     if (dow === 0) cell.classList.add("sun");
     else if (dow === 6) cell.classList.add("sat");
 
-    // 祝日判定
+    // 祝日判定（振替休日込み）
     const holidayName = getHolidayName(currentYear, currentMonth, day);
     if (holidayName) {
       cell.classList.add("holiday");
@@ -2093,6 +2292,7 @@ function renderCalendar() {
     }
 
     updateCellMark(cell, key);
+    updateCellMemo(cell, key);
     attachPressHandlers(cell, key);
     grid.appendChild(cell);
   }
@@ -2139,6 +2339,20 @@ function updateCellMark(cell, key) {
   iconEl.textContent = def.icon || "";
   if (def.color) {
     iconEl.style.color = def.color;
+  }
+}
+
+// メモインジケータ更新
+function updateCellMemo(cell, key) {
+  const memoEl = cell.querySelector(".memo-indicator");
+  if (!memoEl) return;
+  const txt = dayMemos[key];
+  if (txt && txt.trim().length > 0) {
+    memoEl.textContent = "📝";
+    memoEl.style.display = "block";
+  } else {
+    memoEl.textContent = "";
+    memoEl.style.display = "none";
   }
 }
 
@@ -2190,6 +2404,7 @@ function attachPressHandlers(cell, key) {
 
     if (ev.button === 2) {
       ev.preventDefault();
+      setSelectedDate(key);
       openMarkMenuForCell(cell, key);
       return;
     }
@@ -2198,6 +2413,7 @@ function attachPressHandlers(cell, key) {
     if (pressTimer) clearTimeout(pressTimer);
     pressTimer = setTimeout(() => {
       longPressTriggered = true;
+      setSelectedDate(key);
       openMarkMenuForCell(cell, key);
     }, LONG_PRESS_MS);
   });
@@ -2238,6 +2454,7 @@ function attachPressHandlers(cell, key) {
       showLoginRequiredHint();
       return;
     }
+    setSelectedDate(key);
     openMarkMenuForCell(cell, key);
   });
 }
@@ -2294,7 +2511,6 @@ function openMarkMenuForCell(cell, key) {
     showLoginRequiredHint();
     return;
   }
-  setSelectedDate(key);
   buildMarkMenuItems();
   const rect = cell.getBoundingClientRect();
   markMenu.style.display = "flex";
@@ -2330,7 +2546,7 @@ markMenu.addEventListener("click", (ev) => {
   const cell = document.querySelector(`.day[data-date-key="${key}"]`);
   if (cell) updateCellMark(cell, key);
   closeMarkMenu();
-  updateSelectedInfo();
+  setSelectedDate(key);
 });
 
 document.addEventListener("click", (ev) => {
@@ -2406,9 +2622,9 @@ document.getElementById("nextMonth").addEventListener("click", () => {
   animateCalendar("right");
 });
 
-const todayBtn = document.getElementById("todayBtn");
-if (todayBtn) {
-  todayBtn.addEventListener("click", () => {
+const todayBtnEl = document.getElementById("todayBtn");
+if (todayBtnEl) {
+  todayBtnEl.addEventListener("click", () => {
     const now = new Date();
     currentYear = now.getFullYear();
     currentMonth = now.getMonth();
@@ -2520,7 +2736,7 @@ function renderMarkSettingsUI(selectedState) {
     }
   }
 
-  // マーク一覧（デフォルトも含めて全部表示）
+  // マーク一覧
   unusedList.innerHTML = "";
   if (allIds.length === 0) {
     const msg = document.createElement("span");
@@ -2683,7 +2899,7 @@ function setupLoginUI() {
         }
       }
 
-      // ★ 現在のメイン/サブ選択状態を保持してから再描画
+      // 現在のメイン/サブ選択状態を保持してから再描画
       const selectedState = { main: "", subs: {} };
       const mainSel = document.getElementById("mainMarkSelect");
       if (mainSel) selectedState.main = mainSel.value || "";
@@ -2742,6 +2958,7 @@ function setupLoginUI() {
       renderCalendar();
       renderLegendBar();
       updateSelectedInfo();
+      updateMemoEditor();
       showToast("マーク設定を保存しました");
     });
   }
@@ -2816,6 +3033,7 @@ function setupLoginUI() {
       renderCalendar();
       renderLegendBar();
       updateSelectedInfo();
+      updateMemoEditor();
     });
   }
 
@@ -2838,6 +3056,58 @@ function setupLoginUI() {
   }
 }
 
+// ===== メモUIセットアップ =====
+function setupMemoUI() {
+  if (memoUIInitialized) return;
+
+  const textarea = document.getElementById("memoTextarea");
+  const saveBtn = document.getElementById("memoSaveBtn");
+  const clearBtn = document.getElementById("memoClearBtn");
+
+  if (!textarea || !saveBtn || !clearBtn) return;
+
+  saveBtn.addEventListener("click", () => {
+    if (!currentUserId || !selectedDateKey) {
+      showLoginRequiredHint();
+      return;
+    }
+    const txt = textarea.value;
+    if (txt && txt.trim().length > 0) {
+      dayMemos[selectedDateKey] = txt;
+    } else {
+      delete dayMemos[selectedDateKey];
+    }
+    saveUserStateToCloud();
+    const cell = document.querySelector(`.day[data-date-key="${selectedDateKey}"]`);
+    if (cell) updateCellMemo(cell, selectedDateKey);
+    updateSelectedInfo();
+    showToast("メモを保存しました");
+  });
+
+  clearBtn.addEventListener("click", () => {
+    if (!currentUserId || !selectedDateKey) {
+      showLoginRequiredHint();
+      return;
+    }
+    if (!dayMemos[selectedDateKey]) {
+      textarea.value = "";
+      showToast("そもそもメモがありません");
+      return;
+    }
+    const ok = confirm("この日のメモを削除しますか？");
+    if (!ok) return;
+    delete dayMemos[selectedDateKey];
+    textarea.value = "";
+    saveUserStateToCloud();
+    const cell = document.querySelector(`.day[data-date-key="${selectedDateKey}"]`);
+    if (cell) updateCellMemo(cell, selectedDateKey);
+    updateSelectedInfo();
+    showToast("メモを削除しました");
+  });
+
+  memoUIInitialized = true;
+}
+
 // ===== 初期化 =====
 function init() {
   const now = new Date();
@@ -2854,6 +3124,7 @@ function init() {
   renderLegendBar();
   updateLoginStatusUI();
   updateSelectedInfo();
+  updateMemoEditor();
 
   tryAutoLoginFromLocal();
 }

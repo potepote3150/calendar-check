@@ -1159,6 +1159,26 @@ body.theme-dark #toast {
     width: min(260px, 96vw);
   }
 }
+/* ===== スマホ時のサブマーク選択レイアウト調整 ===== */
+@media (max-width: 640px) {
+  /* サブマークの行を 1 列にする */
+  .submark-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* ラベル内を縦並び（テキストの下にセレクト）にして、はみ出さないように */
+  .submark-list label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  /* セレクトボックスを横幅いっぱいにする */
+  .submark-list select {
+    width: 100%;
+    min-width: 0;
+  }
+}
   </style>
 
   <!-- Firebase（compat版） -->

@@ -312,6 +312,48 @@ body,
   color: #c2410c;
 }
 
+/* モード切り替え（マーク / メモ） */
+.mode-switch {
+  margin-top: 0;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.mode-btn {
+  border-radius: 9999px;
+  border: 1px solid var(--nav-btn-border);
+  background: var(--nav-btn-bg);
+  color: var(--nav-btn-text);
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.06s ease, box-shadow 0.1s ease;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.12);
+}
+
+.mode-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 rgba(15, 23, 42, 0.1);
+}
+
+.mode-btn:hover {
+  background: var(--nav-btn-bg-hover);
+}
+
+.mode-btn.active {
+  background: var(--nav-btn-bg-hover);
+  border-color: #2563eb;
+  color: #1d4ed8;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+  font-weight: 600;
+}
+
 /* 月ラベル（手帳テーマ用のベース） */
 body.theme-notebook #monthLabel {
   position: relative;
@@ -1104,6 +1146,10 @@ body.theme-dark #toast {
     right: 10px;
   }
 
+  .mode-switch {
+    justify-content: flex-start;
+  }
+
   /* マークメニューを下部シート風に */
   .mark-menu {
     left: 50% !important;
@@ -1173,6 +1219,13 @@ body.theme-dark #toast {
             <button id="nextMonth" class="nav-btn" type="button">›</button>
             <button id="todayBtn" class="today-btn" type="button">今日へ</button>
           </div>
+
+          <!-- モード切り替え -->
+          <div class="mode-switch">
+            <button id="modeMarkBtn" class="mode-btn active" type="button">マーク</button>
+            <button id="modeMemoBtn" class="mode-btn" type="button">メモ</button>
+          </div>
+
           <div class="calendar-grid" id="calendarGrid"></div>
           <!-- この下に凡例・選択中日付・メモエリアをJSで差し込む -->
         </div>
@@ -1350,6 +1403,9 @@ let currentYear;
 let currentMonth;
 let longPressTriggered = false;
 const LONG_PRESS_MS = 500;
+
+// 追加：モード状態 ("mark" or "memo")
+let currentMode = "mark";
 
 let currentUserId = null;
 let currentPin = null; // パスワード
@@ -1722,7 +1778,9 @@ function logoutUser() {
   selectedDateKey = null;
   clearSessionFromLocal();
   currentTheme = "light";
+  currentMode = "mark";
   applyTheme();
+  updateModeUI();
 
   const userIdInput = document.getElementById("userIdInput");
   const pinInput = document.getElementById("pinInput");
@@ -1863,7 +1921,9 @@ async function deleteAccount() {
     selectedDateKey = null;
     clearSessionFromLocal();
     currentTheme = "light";
+    currentMode = "mark";
     applyTheme();
+    updateModeUI();
 
     const userIdInput = document.getElementById("userIdInput");
     const pinInput = document.getElementById("pinInput");
@@ -1931,6 +1991,21 @@ function updateLoginStatusUI() {
     if (header) header.textContent = "ログイン中";
     if (formBody) formBody.style.display = "none"; // ログイン後は折りたたみ
     if (toggleBtn) toggleBtn.textContent = "▼";
+  }
+}
+
+// ===== モードUI更新 =====
+function updateModeUI() {
+  const markBtn = document.getElementById("modeMarkBtn");
+  const memoBtn = document.getElementById("modeMemoBtn");
+  if (!markBtn || !memoBtn) return;
+
+  if (currentMode === "mark") {
+    markBtn.classList.add("active");
+    memoBtn.classList.remove("active");
+  } else {
+    memoBtn.classList.add("active");
+    markBtn.classList.remove("active");
   }
 }
 
@@ -2402,13 +2477,23 @@ function attachPressHandlers(cell, key) {
       return;
     }
 
+    // 右クリック
     if (ev.button === 2) {
       ev.preventDefault();
       setSelectedDate(key);
-      openMarkMenuForCell(cell, key);
+      if (currentMode === "mark") {
+        openMarkMenuForCell(cell, key);
+      }
       return;
     }
 
+    // メモモードは長押しでマークメニューを出さない
+    if (currentMode === "memo") {
+      longPressTriggered = false;
+      return;
+    }
+
+    // マークモードのみ長押し判定
     longPressTriggered = false;
     if (pressTimer) clearTimeout(pressTimer);
     pressTimer = setTimeout(() => {
@@ -2426,6 +2511,13 @@ function attachPressHandlers(cell, key) {
     if (!currentUserId || cell.classList.contains("empty")) return;
     if (ev.button === 2) return;
 
+    // メモモード：マークは触らず、日付選択だけ
+    if (currentMode === "memo") {
+      setSelectedDate(key);
+      return;
+    }
+
+    // マークモード：長押しでなければメインマークのON/OFF
     if (!longPressTriggered) {
       toggleMainMarkOnDate(key);
       updateCellMark(cell, key);
@@ -2455,7 +2547,9 @@ function attachPressHandlers(cell, key) {
       return;
     }
     setSelectedDate(key);
-    openMarkMenuForCell(cell, key);
+    if (currentMode === "mark") {
+      openMarkMenuForCell(cell, key);
+    }
   });
 }
 
@@ -2507,6 +2601,9 @@ function buildMarkMenuItems() {
 }
 
 function openMarkMenuForCell(cell, key) {
+  // メモモード中はマークメニューを出さない
+  if (currentMode !== "mark") return;
+
   if (!currentUserId) {
     showLoginRequiredHint();
     return;
@@ -3056,6 +3153,27 @@ function setupLoginUI() {
   }
 }
 
+// ===== モード切り替えUIセットアップ =====
+function setupModeUI() {
+  const markBtn = document.getElementById("modeMarkBtn");
+  const memoBtn = document.getElementById("modeMemoBtn");
+  if (!markBtn || !memoBtn) return;
+
+  markBtn.addEventListener("click", () => {
+    currentMode = "mark";
+    updateModeUI();
+    showToast("マークモードに切り替えました");
+  });
+
+  memoBtn.addEventListener("click", () => {
+    currentMode = "memo";
+    updateModeUI();
+    showToast("メモモードに切り替えました");
+  });
+
+  updateModeUI();
+}
+
 // ===== メモUIセットアップ =====
 function setupMemoUI() {
   if (memoUIInitialized) return;
@@ -3115,9 +3233,11 @@ function init() {
   currentMonth = now.getMonth();
   loginHintShown = false;
   currentTheme = "light";
+  currentMode = "mark";
   applyTheme();
 
   setupLoginUI();
+  setupModeUI();
   showMainView();
   renderCalendar();
   ensureExtraUI();

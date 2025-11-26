@@ -5,7 +5,7 @@
   <title>カレンダーチェック（クラウド同期・改）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <linkpreconnect="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -154,6 +154,13 @@ body,
   color: var(--text-muted);
 }
 
+/* ログイン説明テキスト */
+.login-hint-small {
+  margin: 4px 2px 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 /* 設定ボタン & メニュー */
 .settings-btn {
   position: fixed;
@@ -187,9 +194,9 @@ body,
   border: 1px solid #e5e7eb;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
   padding: 10px 12px;
-  width: 240px; /* 少し広げた */
+  width: 240px;
   display: none;
-  max-height: 80vh; /* 縦長になりすぎないように */
+  max-height: 80vh;
   overflow-y: auto;
 }
 
@@ -214,12 +221,12 @@ body,
   width: 100%;
   padding: 6px 8px;
   margin-top: 4px;
-  border-radius: 8px; /* 角丸を少し緩く */
+  border-radius: 8px;
   border: none;
   font-size: 0.82rem;
   text-align: left;
   cursor: pointer;
-  background: transparent; /* 背景透明に */
+  background: transparent;
   color: #111827;
   transition: background-color 0.1s ease;
 }
@@ -255,6 +262,7 @@ body,
   justify-content: space-between;
   margin-bottom: 8px;
 }
+
 /* テーマアイコン＋同期バッジ */
 .status-area {
   margin-left: auto;
@@ -304,7 +312,7 @@ body.theme-dark .sync-badge.off {
   margin: 0;
   font-size: 1rem;
   display: flex;
-  flex-direction: column; /* 六曜を下に表示するため */
+  flex-direction: column;
 }
 
 /* 六曜表示エリア */
@@ -315,13 +323,13 @@ body.theme-dark .sync-badge.off {
   margin-top: 2px;
 }
 .rokuyo-info .rokuyo-label {
-    font-weight: 600;
-    margin-left: 4px;
+  font-weight: 600;
+  margin-left: 4px;
 }
 /* 六曜ごとの色 */
-.rokuyo-taian { color: #d32f2f; } /* 大安：赤 */
-.rokuyo-butsumetsu { color: #424242; } /* 仏滅：黒/グレー */
-.rokuyo-tomobiki { color: #7b1fa2; } /* 友引：紫 */
+.rokuyo-taian { color: #d32f2f; }
+.rokuyo-butsumetsu { color: #424242; }
+.rokuyo-tomobiki { color: #7b1fa2; }
 
 .calendar-tools {
   margin-top: 4px;
@@ -435,8 +443,7 @@ body.theme-dark .sync-badge.off {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
   font-size: 0.78rem;
-  /* スワイプ用 */
-  touch-action: pan-y; /* 縦スクロールは許可、横はJSで制御 */
+  touch-action: pan-y;
   position: relative;
 }
 
@@ -466,7 +473,6 @@ body.theme-dark .sync-badge.off {
   cursor: pointer;
   transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.12s ease, border-color 0.15s ease;
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
-  /* マークアニメーションの基点 */
   z-index: 1;
 }
 
@@ -526,6 +532,14 @@ body.theme-dark .sync-badge.off {
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.8);
 }
 
+/* 選択中セルの強調 */
+.day.selected {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6);
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.06);
+  z-index: 2;
+}
+
 /* 「今日」バッジ */
 .day.today::after {
   content: "今日";
@@ -542,13 +556,6 @@ body.theme-dark .sync-badge.off {
 body.theme-dark .day.today::after {
   background: #fb923c;
 }
-
-.day.selected {
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6);
-  border-color: #2563eb;
-  z-index: 2; /* 選択中は少し手前に */
-}
-
 
 /* 祝日名ラベル */
 .holiday-label {
@@ -574,17 +581,16 @@ body.theme-dark .day.today::after {
   margin-top: auto;
   font-size: 1rem;
   text-align: center;
-  /* アニメーション用 */
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 /* マークが付いた瞬間のバウンスアニメーション */
 .day.mark-bounce .mark-icon {
-    animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 @keyframes bounceIn {
-    0% { transform: scale(0); opacity: 0; }
-    60% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); }
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
 /* 凡例 & 選択中情報 */
@@ -617,6 +623,17 @@ body.theme-dark .day.today::after {
   padding: 4px 8px;
   border-radius: 9999px;
   background: #eff6ff;
+}
+
+/* 今日のサマリ */
+.today-summary {
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: #ecfeff;
+  color: #064e3b;
+  font-size: 0.8rem;
+  display: none;
 }
 
 /* メモエリア */
@@ -665,6 +682,33 @@ body.theme-dark .day.today::after {
   cursor: pointer;
 }
 
+/* メモタグボタン */
+.memo-tags {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.memo-tags-label {
+  color: var(--text-muted);
+}
+
+.memo-tag-btn {
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.memo-tag-btn:hover {
+  background: #e5e7eb;
+}
+
 .memo-hint {
   margin-top: 4px;
   font-size: 0.7rem;
@@ -678,7 +722,7 @@ body.theme-dark .day.today::after {
   box-shadow: var(--shadow-soft);
   padding: 14px 16px 16px;
   border: 1px solid var(--border-card);
-  display: none; /* 初期状態は非表示 */
+  display: none;
 }
 
 .subview h2 {
@@ -690,13 +734,13 @@ body.theme-dark .day.today::after {
 }
 /* 閉じるボタン */
 .close-subview-btn {
-    background: transparent;
-    border: none;
-    font-size: 1.2rem;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px;
-    line-height: 1;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
 }
 
 .form-group {
@@ -981,7 +1025,6 @@ body.theme-notebook {
   --bg-app: transparent;
   --bg-card: #fffef6;
   --border-card: #fbbf24;
-  /* 手書きフォント適用 */
   font-family: 'Zen Maru Gothic', sans-serif;
 }
 
@@ -1016,18 +1059,16 @@ body.theme-notebook .app::after {
   opacity: 0.9;
 }
 
-/* 赤い罫線はメインビューだけ */
 body.theme-notebook #mainView {
   position: relative;
 }
 
-/* 手帳テーマのボタンフォント調整 */
 body.theme-notebook button,
 body.theme-notebook select,
 body.theme-notebook input,
 body.theme-notebook textarea {
-    font-family: 'Zen Maru Gothic', sans-serif;
-    font-weight: 500;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 500;
 }
 
 /* テーマ：ダーク */
@@ -1057,7 +1098,8 @@ body.theme-dark .subview {
     0 18px 45px rgba(0, 0, 0, 0.85);
 }
 
-body.theme-dark .login-status {
+body.theme-dark .login-status,
+body.theme-dark .login-hint-small {
   color: #9ca3af;
 }
 
@@ -1099,7 +1141,7 @@ body.theme-dark .calendar-grid .day-number {
 }
 
 body.theme-dark .calendar-grid .day.sun .day-number,
-body.theme-dark .calendar-grid .day.holiday .day-number {
+body.theme-dark .day.holiday .day-number {
   color: #fecaca;
 }
 body.theme-dark .calendar-grid .day.sat .day-number {
@@ -1120,104 +1162,23 @@ body.theme-dark .calendar-grid .day.has-mark {
   box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.9);
 }
 
+body.theme-dark .day.selected {
+  background: rgba(37, 99, 235, 0.22);
+}
+
 body.theme-dark .mark-legend .legend-item {
   background: #020617;
   border: 1px solid #1e293b;
-}
-/* 今月のマーク集計バー */
-.monthly-summary {
-  margin-top: 6px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  font-size: 0.75rem;
-}
-
-.monthly-summary-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 6px;
-}
-
-.monthly-summary-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #4b5563;
-  margin: 0;
-}
-
-.streak-info {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #f97316; /* オレンジ */
-}
-.streak-info span {
-    font-size: 1rem;
-    margin: 0 2px;
-}
-
-.monthly-summary-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.monthly-summary-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.monthly-summary-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 70px;
-  font-size: 0.8rem;
-}
-
-.monthly-summary-icon {
-  font-size: 0.9rem;
-}
-
-.monthly-summary-bar-wrap {
-  flex: 1;
-  height: 6px; /* 少し太く */
-  border-radius: 9999px;
-  background: #e5e7eb;
-  overflow: hidden;
-}
-
-.monthly-summary-bar {
-  height: 100%;
-  border-radius: inherit;
-  background: #60a5fa;
-  transition: width 0.3s ease-out; /* 伸びるアニメーション */
-}
-
-/* ダークテーマ時の集計バー */
-body.theme-dark .monthly-summary {
-  background: #020617;
-  border-color: #1e293b;
-}
-
-body.theme-dark .monthly-summary-title {
-  color: #9ca3af;
-}
-
-body.theme-dark .monthly-summary-bar-wrap {
-  background: #111827;
-}
-
-body.theme-dark .monthly-summary-bar {
-  background: #3b82f6;
 }
 
 body.theme-dark .selected-info {
   background: rgba(37, 99, 235, 0.16);
   color: #e5e7eb;
+}
+
+body.theme-dark .today-summary {
+  background: rgba(34, 197, 94, 0.16);
+  color: #bbf7d0;
 }
 
 body.theme-dark .today-btn.today-active {
@@ -1259,7 +1220,7 @@ body.theme-dark .settings-menu {
     0 20px 40px rgba(15, 23, 42, 0.8);
 }
 body.theme-dark .settings-section {
-    border-bottom-color: rgba(29, 78, 216, 0.5);
+  border-bottom-color: rgba(29, 78, 216, 0.5);
 }
 
 body.theme-dark .settings-menu button {
@@ -1282,7 +1243,7 @@ body.theme-dark .settings-menu button.danger:hover {
   background: rgba(248, 113, 113, 0.18);
 }
 
-/* マークメニューを設定メニューと同じ系統の色に */
+/* マークメニュー */
 body.theme-dark .mark-menu {
   background: #1e3a8a;
   border-color: #1d4ed8;
@@ -1299,102 +1260,255 @@ body.theme-dark .mark-menu button:hover {
   background: rgba(15, 23, 42, 0.35);
 }
 
+/* 今月のマーク集計バー */
+.monthly-summary {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-size: 0.75rem;
+}
+
+.monthly-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.monthly-summary-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin: 0;
+}
+
+.streak-info {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #f97316;
+}
+.streak-info span {
+  font-size: 1rem;
+  margin: 0 2px;
+}
+
+.monthly-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.monthly-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.monthly-summary-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+  font-size: 0.8rem;
+}
+
+.monthly-summary-icon {
+  font-size: 0.9rem;
+}
+
+.monthly-summary-bar-wrap {
+  flex: 1;
+  height: 6px;
+  border-radius: 9999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.monthly-summary-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: #60a5fa;
+  transition: width 0.3s ease-out;
+}
+
+/* 月目標のバー */
+.monthly-goal-wrap {
+  margin-bottom: 6px;
+}
+.monthly-goal-text {
+  font-size: 0.75rem;
+  color: #4b5563;
+  margin-bottom: 2px;
+}
+.monthly-goal-bar-wrap {
+  height: 6px;
+  border-radius: 9999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+.monthly-goal-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: #22c55e;
+  transition: width 0.3s ease-out;
+}
+
+/* ダークテーマ時の集計バー */
+body.theme-dark .monthly-summary {
+  background: #020617;
+  border-color: #1e293b;
+}
+
+body.theme-dark .monthly-summary-title {
+  color: #9ca3af;
+}
+
+body.theme-dark .monthly-summary-bar-wrap,
+body.theme-dark .monthly-goal-bar-wrap {
+  background: #111827;
+}
+
+body.theme-dark .monthly-summary-bar {
+  background: #3b82f6;
+}
+
+body.theme-dark .monthly-goal-bar {
+  background: #22c55e;
+}
+
 /* ===== 年間アクティビティ（棒グラフ） ===== */
 .heatmap-container {
-    padding: 10px;
+  padding: 10px;
 }
 
 .year-summary-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
 }
 
 .year-summary-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  border-radius: 9999px;
 }
 
 .year-summary-label {
-    width: 4.5rem;
+  width: 4.5rem;
 }
 
 .year-summary-bar-wrap {
-    flex: 1;
-    height: 6px;
-    border-radius: 9999px;
-    background: #e5e7eb;
-    overflow: hidden;
+  flex: 1;
+  height: 6px;
+  border-radius: 9999px;
+  background: #e5e7eb;
+  overflow: hidden;
 }
 
 .year-summary-bar {
-    height: 100%;
-    border-radius: inherit;
-    background: #60a5fa;
-    transition: width 0.3s ease-out;
+  height: 100%;
+  border-radius: inherit;
+  background: #60a5fa;
+  transition: width 0.3s ease-out;
 }
 
 .year-summary-count {
-    width: 4.5rem;
-    text-align: right;
-    font-size: 0.8rem;
-    color: var(--text-muted);
+  width: 5rem;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* 年間グラフの最多月強調 */
+.year-summary-item.year-summary-max {
+  background: #fef3c7;
+}
+.year-summary-item.year-summary-max .year-summary-count {
+  font-weight: 600;
 }
 
 /* ダークテーマ時のバーグラフ */
 body.theme-dark .year-summary-bar-wrap {
-    background: #111827;
+  background: #111827;
 }
 body.theme-dark .year-summary-bar {
-    background: #3b82f6;
+  background: #3b82f6;
+}
+body.theme-dark .year-summary-item.year-summary-max {
+  background: rgba(245, 158, 11, 0.2);
 }
 
-
-
-/* ===== メモ検索結果 ===== */
+/* ===== メモ検索結果・マーク一覧・タイムライン共通 ===== */
 .search-results-list {
-    margin-top: 10px;
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid var(--border-card);
-    border-radius: 12px;
+  margin-top: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
 }
 .search-result-item {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border-card);
-    cursor: pointer;
-    font-size: 0.85rem;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-card);
+  cursor: pointer;
+  font-size: 0.85rem;
 }
 .search-result-item:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 .search-result-item:hover {
-    background: var(--bg-body);
+  background: var(--bg-body);
 }
 .result-date {
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--accent);
 }
 .result-snippet {
-    color: var(--text-main);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .result-snippet em {
-    font-style: normal;
-    background: #fef08a; /* 黄色ハイライト */
-    font-weight: 600;
+  font-style: normal;
+  background: #fef08a;
+  font-weight: 600;
 }
 body.theme-dark .result-snippet em {
-    background: #854d0e;
-    color: #fef08a;
+  background: #854d0e;
+  color: #fef08a;
+}
+.result-tags {
+    margin-top: 2px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
 
+.tag-chip-list {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tag-chip {
+    padding: 2px 8px;
+    border-radius: 9999px;
+    border: 1px solid var(--border-card);
+    font-size: 0.75rem;
+    background: var(--bg-body);
+    cursor: pointer;
+}
+
+.tag-chip:hover {
+    background: var(--accent-soft);
+}
 
 /* ===== トースト通知 ===== */
 #toast {
@@ -1420,7 +1534,6 @@ body.theme-dark .result-snippet em {
   transform: translateX(-50%) translateY(0);
 }
 
-/* テーマ別トースト色微調整 */
 body.theme-notebook #toast {
   background: rgba(120, 53, 15, 0.96);
 }
@@ -1449,7 +1562,7 @@ body.theme-dark #toast {
   }
 
   .day {
-    min-height: 56px; /* 少し高くしてタッチしやすく */
+    min-height: 56px;
   }
 
   .settings-btn {
@@ -1470,10 +1583,15 @@ body.theme-dark #toast {
   }
   
   .settings-menu {
-    right: 10px;
-    width: 260px;
+    right: 0;
+    left: 0;
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
   }
 }
+
 /* ===== スマホ時のサブマーク選択レイアウト調整 ===== */
 @media (max-width: 640px) {
   .submark-list {
@@ -1502,16 +1620,18 @@ body.theme-dark #toast {
 
     <div id="settingsMenu" class="settings-menu">
       <div class="settings-section">
-    <p class="settings-title">データ管理 / 統計</p>
-    <button type="button" data-action="openSearch">🔍 メモを検索</button>
-    <button type="button" data-action="openHeatmap">📊 年間活動グラフを見る</button>
-    <button type="button" data-action="downloadBackup">📥 データをバックアップ保存</button>
-    <button type="button" data-action="triggerRestore">📤 バックアップから復元</button>
-</div>
+        <p class="settings-title">データ管理 / 統計</p>
+        <button type="button" data-action="openSearch">🔍 メモを検索</button>
+        <button type="button" data-action="openMarkedList">📅 マーク付きの日一覧</button>
+        <button type="button" data-action="openTimeline">📝 最近のメモタイムライン</button>
+        <button type="button" data-action="openHeatmap">📊 年間活動グラフを見る</button>
+        <button type="button" data-action="downloadBackup">📥 データをバックアップ保存</button>
+        <button type="button" data-action="triggerRestore">📤 バックアップから復元</button>
+      </div>
       <div class="settings-section">
-          <p class="settings-title">設定 / アカウント</p>
-          <button type="button" data-action="openMarks">🎨 マーク・テーマ設定</button>
-          <button type="button" data-action="openChange">👤 アカウント情報の変更</button>
+        <p class="settings-title">設定 / アカウント</p>
+        <button type="button" data-action="openMarks">🎨 マーク・テーマ設定</button>
+        <button type="button" data-action="openChange">👤 アカウント情報の変更</button>
       </div>
       <div class="settings-section">
         <button type="button" data-action="logout" class="danger">ログアウト</button>
@@ -1543,6 +1663,9 @@ body.theme-dark #toast {
       <p id="loginStatus" class="login-status">
         未ログイン / まずはユーザーIDとパスワードで新規登録してください
       </p>
+      <p class="login-hint-small">
+        ※マーク・メモ・テーマ設定などはクラウドに保存され、同じユーザーIDで別の端末からも同じ状態で使えます。
+      </p>
     </section>
 
     <main id="mainView">
@@ -1550,7 +1673,7 @@ body.theme-dark #toast {
         <header class="calendar-header">
           <h2 id="calendarTitle">
             カレンダー
-            </h2>
+          </h2>
           <div class="status-area">
             <span id="themeBadge" class="theme-badge" title="テーマ">🌞</span>
             <span id="syncBadge" class="sync-badge off">未ログイン</span>
@@ -1570,41 +1693,86 @@ body.theme-dark #toast {
           </div>
 
           <div class="calendar-grid" id="calendarGrid"></div>
-          </div>
+        </div>
       </section>
     </main>
 
     <section id="searchView" class="subview">
-        <h2>
-            <span>メモ検索</span>
-            <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
-        </h2>
-        <div class="form-group" style="display: flex; gap: 8px;">
-            <input id="searchInput" type="text" placeholder="検索キーワードを入力..." style="flex: 1;">
-            <button id="searchExecuteBtn" type="button" class="primary">検索</button>
-        </div>
-        <div id="searchResults" class="search-results-list">
-            <p class="hint">キーワードを入力して検索してください。</p>
-        </div>
-    </section>
-
-    <section id="heatmapView" class="subview">
     <h2>
-        <span>年間活動グラフ（直近12か月）</span>
+        <span>メモ検索</span>
         <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
     </h2>
-    <p class="hint" style="margin-bottom: 8px;">
-        ここ1年分の「マークがついた日数」を月ごとの棒グラフで表示します。
-    </p>
-    <div class="heatmap-container">
-        <div id="heatmapGrid" class="year-summary-list"></div>
+
+    <!-- キーワード検索 -->
+    <div class="form-group" style="display: flex; gap: 8px;">
+        <input id="searchInput" type="text" placeholder="検索キーワードを入力..." style="flex: 1;">
+        <button id="searchExecuteBtn" type="button" class="primary">検索</button>
     </div>
+
+    <!-- タグ検索 -->
+    <div class="form-group" id="tagSearchArea">
+        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:4px;">
+            タグで絞り込む
+        </label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input id="tagSearchInput" type="text" placeholder="例: 勉強, 推し活" style="flex:1; min-width:140px;">
+            <button id="tagSearchBtn" type="button">タグ検索</button>
+        </div>
+        <div id="tagSuggestionList" class="tag-chip-list"></div>
+    </div>
+
+    <!-- メモがある日一覧ボタン -->
+    <div class="form-group">
+        <button id="listAllMemoDaysBtn" type="button" style="width:100%;">📝 メモがある日をすべて表示</button>
+    </div>
+
+    <div id="searchResults" class="search-results-list">
+        <p class="hint">キーワードまたはタグを入力して検索してください。</p>
+    </div>
+</section>
+
+
+    <section id="markedListView" class="subview">
+      <h2>
+        <span>今月のマーク付きの日一覧</span>
+        <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
+      </h2>
+      <p class="hint">現在表示中の月のうち、マークがついている日を一覧で表示します。</p>
+      <div id="markedListContainer" class="search-results-list">
+        <p class="hint">マークがついている日がここに表示されます。</p>
+      </div>
+    </section>
+
+    <section id="timelineView" class="subview">
+      <h2>
+        <span>最近のメモタイムライン</span>
+        <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
+      </h2>
+      <p class="hint">最近のメモを新しい順に最大7日分表示します。</p>
+      <div id="timelineList" class="search-results-list">
+        <p class="hint">メモがある日がここに表示されます。</p>
+      </div>
+    </section>
+
+<section id="heatmapView" class="subview">
+  <h2>
+    <span>年間活動グラフ</span>
+    <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
+  </h2>
+  <p class="hint">
+    直近12か月分のマーク数を、月ごとの棒グラフで表示します。
+  </p>
+  <div class="heatmap-container">
+    <div id="heatmapGrid" class="year-summary-list">
+      <p class="hint">データを読み込み中...</p>
+    </div>
+  </div>
 </section>
 
     <section id="changeView" class="subview">
       <h2>
-          <span>アカウント情報の変更</span>
-          <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
+        <span>アカウント情報の変更</span>
+        <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
       </h2>
       <div class="form-group">
         <label>
@@ -1631,8 +1799,8 @@ body.theme-dark #toast {
 
     <section id="deleteView" class="subview">
       <h2>
-          <span>アカウント削除</span>
-          <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
+        <span>アカウント削除</span>
+        <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
       </h2>
       <p class="warning-text">
         このユーザーIDに紐づくカレンダーのデータはすべて削除されます。元には戻せません。
@@ -1650,8 +1818,8 @@ body.theme-dark #toast {
 
     <section id="markSettingsView" class="subview">
       <h2>
-          <span>マーク / 表示設定</span>
-          <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
+        <span>マーク / 表示設定</span>
+        <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
       </h2>
 
       <div class="form-group">
@@ -1663,6 +1831,14 @@ body.theme-dark #toast {
             <option value="dark">ダーク</option>
           </select>
         </label>
+      </div>
+
+      <div class="form-group">
+        <label>
+          今月のメインマーク目標日数
+          <input id="monthlyGoalInput" type="number" min="0" max="31" placeholder="例：20" />
+        </label>
+        <p class="hint">0のままにすると「目標なし」として扱います。</p>
       </div>
 
       <div class="mark-settings-grid">
@@ -1690,6 +1866,10 @@ body.theme-dark #toast {
           <label>
             記号
             <input id="newMarkIconInput" type="text" maxlength="2" placeholder="例：★✅" />
+          </label>
+          <label>
+            ラベル（意味）
+            <input id="newMarkLabelInput" type="text" maxlength="8" placeholder="例：勉強 / 推し活" />
           </label>
           <label>
             色
@@ -1745,7 +1925,7 @@ body.theme-dark #toast {
   </div>
 
   <script>
-  // ===== Firebase 初期化 (Configはそのまま維持) =====
+  // ===== Firebase 初期化 =====
 const firebaseConfig = {
   apiKey: "AIzaSyBSzlLXJnpoUv3qgyQsLknlY0CpvG3BwtQ",
   authDomain: "calendar-check-cf2c2.firebaseapp.com",
@@ -1756,47 +1936,41 @@ const firebaseConfig = {
   measurementId: "G-758FP6003T"
 };
 
-// 複数回初期化を防ぐ
 if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.firestore();
 
 // ===== アプリ用状態 =====
 let marks = {};                // "yyyy-mm-dd" -> markId
-let markDefinitions = {};      // markId -> { icon, color }
-let mainMarkId = null;         // タップ時に使うマークID
-let subMarkIds = {};           // "1"〜"6" -> markId (数を少し減らしました)
+let markDefinitions = {};      // markId -> { icon, color, label? }
+let mainMarkId = null;
+let subMarkIds = {};           // "1"〜"6" -> markId
 let dayMemos = {};             // "yyyy-mm-dd" -> string
+let monthlyMainGoal = 0;       // 今月のメインマーク目標日数
+let dayMemoTags = {};          // "yyyy-mm-dd" -> ["タグ1", "タグ2", ...]
 
 let currentYear;
 let currentMonth; // 0-indexed
 let longPressTriggered = false;
 const LONG_PRESS_MS = 500;
 
-// モード状態 ("mark" or "memo")
 let currentMode = "mark";
 
 let currentUserId = null;
-let currentPin = null; // パスワード
+let currentPin = null;
 
 let loginHintShown = false;
 let currentTheme = "light";
 
-// 選択中の日付
 let selectedDateKey = null;
 
-// ローカルセッション保持用キー
-const SESSION_KEY = "calendarCheckSession_v2"; // キー名を変更してリセット
-
-// 最近使ったサブマーク
+const SESSION_KEY = "calendarCheckSession_v2";
 const RECENT_SUBMARK_KEY_PREFIX = "calendarCheckRecentSubMarks_";
 let recentSubMarks = [];
 
-// スワイプ用変数
 let touchStartX = 0;
 let touchStartY = 0;
-
 
 // ===== トースト通知 =====
 let toastTimer = null;
@@ -1852,11 +2026,11 @@ function applyTheme() {
 // ===== デフォルトマーク定義 =====
 function getDefaultMarkSetup() {
   const defs = {
-    m_check: { icon: "✓", color: "#16a34a" },
-    m_circle: { icon: "○", color: "#ef4444" },
-    m_double: { icon: "◎", color: "#f97316" },
-    m_star: { icon: "★", color: "#eab308" },
-    m_heart: { icon: "♥", color: "#ec4899" }
+    m_check:  { icon: "✓", color: "#16a34a", label: "達成" },
+    m_circle: { icon: "○", color: "#ef4444", label: "重要" },
+    m_double: { icon: "◎", color: "#f97316", label: "特別" },
+    m_star:   { icon: "★", color: "#eab308", label: "イベント" },
+    m_heart:  { icon: "♥", color: "#ec4899", label: "推し" }
   };
   const mainId = "m_check";
   const subs = { "1": "m_circle", "2": "m_double", "3": "m_star" };
@@ -1864,26 +2038,23 @@ function getDefaultMarkSetup() {
 }
 
 // ===== 画面切り替え =====
-// 全てのサブビューを閉じてメインビューを表示
 function closeAllSubViews() {
-    document.querySelectorAll('.subview').forEach(el => el.style.display = 'none');
-    document.getElementById("mainView").style.display = "block";
-    document.getElementById("settingsMenu").style.display = "none";
+  document.querySelectorAll('.subview').forEach(el => el.style.display = 'none');
+  document.getElementById("mainView").style.display = "block";
+  document.getElementById("settingsMenu").style.display = "none";
 }
 
 function showView(viewId) {
-    // まず全て閉じる
-    document.querySelectorAll('.subview').forEach(el => el.style.display = 'none');
-    document.getElementById("mainView").style.display = "none";
-    document.getElementById("settingsMenu").style.display = "none";
+  document.querySelectorAll('.subview').forEach(el => el.style.display = 'none');
+  document.getElementById("mainView").style.display = "none";
+  document.getElementById("settingsMenu").style.display = "none";
 
-    const target = document.getElementById(viewId);
-    if (target) {
-        target.style.display = "block";
-        // フォームの最初の入力欄にフォーカス
-        const firstInput = target.querySelector('input:not([type="hidden"]), select, textarea');
-        if (firstInput) firstInput.focus();
-    }
+  const target = document.getElementById(viewId);
+  if (target) {
+    target.style.display = "block";
+    const firstInput = target.querySelector('input:not([type="hidden"]), select, textarea');
+    if (firstInput) firstInput.focus();
+  }
 }
 
 // ===== ローカルセッション操作 =====
@@ -1895,11 +2066,11 @@ function saveSessionToLocal() {
     }
     const obj = { userId: currentUserId, pin: currentPin };
     localStorage.setItem(SESSION_KEY, JSON.stringify(obj));
-  } catch (e) { /* ignore */ }
+  } catch (e) {}
 }
 
 function clearSessionFromLocal() {
-  try { localStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ }
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
 }
 
 function getRecentKeyForCurrentUser() {
@@ -1925,11 +2096,9 @@ function saveRecentSubMarks() {
 
 function registerRecentSubMark(markId) {
   if (!markId || !markDefinitions[markId]) return;
-  // 重複除去して先頭に追加、最大4つ
   recentSubMarks = [markId, ...recentSubMarks.filter(id => id !== markId)].slice(0, 4);
   saveRecentSubMarks();
 }
-
 
 function tryAutoLoginFromLocal() {
   let raw;
@@ -1958,80 +2127,91 @@ function tryAutoLoginFromLocal() {
 
 // ===== ログイン実行共通処理 =====
 function executeLogin(userId, pin, data) {
-    currentUserId = userId;
-    currentPin = pin;
-    loginHintShown = false;
-    
-    // データロード
-    marks = data.marks || {};
-    markDefinitions = data.markDefinitions || getDefaultMarkSetup().defs;
-    mainMarkId = data.mainMarkId || getDefaultMarkSetup().mainId;
-    subMarkIds = data.subMarkIds || getDefaultMarkSetup().subs;
-    dayMemos = data.dayMemos || {};
-    currentTheme = data.theme || "light";
+  currentUserId = userId;
+  currentPin = pin;
+  loginHintShown = false;
+  
+  marks = data.marks || {};
+  markDefinitions = data.markDefinitions || getDefaultMarkSetup().defs;
+  mainMarkId = data.mainMarkId || getDefaultMarkSetup().mainId;
+  subMarkIds = data.subMarkIds || getDefaultMarkSetup().subs;
+  dayMemos = data.dayMemos || {};
+  currentTheme = data.theme || "light";
+  monthlyMainGoal = typeof data.monthlyMainGoal === "number" ? data.monthlyMainGoal : 0;
+dayMemoTags = data.dayMemoTags || {};
 
-    // 後方互換性（古いID形式の移行）
-    migrateLegacyMarks();
+  migrateLegacyMarks();
 
-    applyTheme();
-    saveSessionToLocal();
-    loadRecentSubMarks();
-    
-    updateLoginStatusUI();
-    closeAllSubViews();
-    
-    // カレンダー再描画と関連UI更新
-    refreshCalendarView();
-    
-    // 入力欄クリア
-    document.getElementById("userIdInput").value = "";
-    document.getElementById("pinInput").value = "";
+  applyTheme();
+  saveSessionToLocal();
+  loadRecentSubMarks();
+  
+  updateLoginStatusUI();
+  closeAllSubViews();
+  
+  refreshCalendarView();
+  
+  document.getElementById("userIdInput").value = "";
+  document.getElementById("pinInput").value = "";
 }
 
-// 古いマークID("check"など)を新しい形式に変換
+// 古いマークIDやラベルなしデータの変換
 function migrateLegacyMarks() {
-    const legacyMap = { check: "m_check", circle: "m_circle", double: "m_double" };
-    let needsSave = false;
-    // マーク定義の補完
-    const defaultDefs = getDefaultMarkSetup().defs;
-    Object.keys(defaultDefs).forEach(key => {
-        if (!markDefinitions[key]) {
-            markDefinitions[key] = defaultDefs[key];
-            needsSave = true;
-        }
-    });
+  const legacyMap = { check: "m_check", circle: "m_circle", double: "m_double" };
+  let needsSave = false;
 
-    // カレンダーデータの変換
-    const newMarks = {};
-    Object.keys(marks).forEach(key => {
-        const val = marks[key];
-        if (markDefinitions[val]) {
-            newMarks[key] = val;
-        } else if (legacyMap[val] && markDefinitions[legacyMap[val]]) {
-            newMarks[key] = legacyMap[val];
-            needsSave = true;
-        }
-    });
-    marks = newMarks;
-    
-    if(needsSave) saveUserStateToCloud();
+  const base = getDefaultMarkSetup();
+  const defaultDefs = base.defs;
+
+  // デフォルト定義がなければ補完
+  Object.keys(defaultDefs).forEach(key => {
+    if (!markDefinitions[key]) {
+      markDefinitions[key] = defaultDefs[key];
+      needsSave = true;
+    }
+  });
+
+  // ラベルがないマークに簡易ラベルを付与
+  Object.keys(markDefinitions).forEach(id => {
+    const def = markDefinitions[id];
+    if (!def.label) {
+      if (defaultDefs[id] && defaultDefs[id].label) {
+        def.label = defaultDefs[id].label;
+      } else {
+        def.label = "";
+      }
+      needsSave = true;
+    }
+  });
+
+  const newMarks = {};
+  Object.keys(marks).forEach(key => {
+    const val = marks[key];
+    if (markDefinitions[val]) {
+      newMarks[key] = val;
+    } else if (legacyMap[val] && markDefinitions[legacyMap[val]]) {
+      newMarks[key] = legacyMap[val];
+      needsSave = true;
+    }
+  });
+  marks = newMarks;
+  
+  if (needsSave) saveUserStateToCloud();
 }
 
-
-// ===== 保存（追加も削除も確実に反映する版） =====
+// ===== 保存（追加も削除も確実に反映） =====
 function saveUserStateToCloud() {
   if (!currentUserId || !currentPin) return;
 
   const docRef = db.collection("users").doc(currentUserId);
 
-  // オブジェクトをコピーしておく（念のため）
   const marksToSave = { ...marks };
   const defsToSave = { ...markDefinitions };
   const subsToSave = { ...subMarkIds };
   const memosToSave = { ...dayMemos };
+  const memoTagsToSave = { ...dayMemoTags };
 
   docRef
-    // merge:false にして「このユーザーのデータを丸ごとこの状態にする」
     .set({
       pin: currentPin,
       marks: marksToSave,
@@ -2039,7 +2219,9 @@ function saveUserStateToCloud() {
       mainMarkId: mainMarkId || null,
       subMarkIds: subsToSave,
       theme: currentTheme,
-      dayMemos: memosToSave
+      dayMemos: memosToSave,
+      dayMemoTags: memoTagsToSave,
+      monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0
     })
     .catch((e) => {
       console.error("Save error", e);
@@ -2049,45 +2231,51 @@ function saveUserStateToCloud() {
 
 // ===== 新規登録 / ログインボタン処理 =====
 async function registerUserBtnClicked() {
-    const userId = document.getElementById("userIdInput").value.trim();
-    const pin = document.getElementById("pinInput").value.trim();
-    if (!userId || !pin) { alert("ユーザーIDとパスワードを入力してください"); return; }
-    if (userId.length < 4) { alert("ユーザーIDは4文字以上にしてください"); return; }
+  const userId = document.getElementById("userIdInput").value.trim();
+  const pin = document.getElementById("pinInput").value.trim();
+  if (!userId || !pin) { alert("ユーザーIDとパスワードを入力してください"); return; }
+  if (userId.length < 4) { alert("ユーザーIDは4文字以上にしてください"); return; }
 
-    const docRef = db.collection("users").doc(userId);
-    try {
-        const snap = await docRef.get();
-        if (snap.exists) { alert("そのユーザーIDは既に使われています。"); return; }
-        const base = getDefaultMarkSetup();
-        const newData = {
-            pin: pin,
-            marks: {}, markDefinitions: base.defs, mainMarkId: base.mainId, subMarkIds: base.subs,
-            theme: "light", dayMemos: {}
-        };
-        await docRef.set(newData);
-        executeLogin(userId, pin, newData);
-        showToast("🎉 新規登録しました！");
-    } catch (e) { alert("エラーが発生しました: " + e.message); }
+  const docRef = db.collection("users").doc(userId);
+  try {
+    const snap = await docRef.get();
+    if (snap.exists) { alert("そのユーザーIDは既に使われています。"); return; }
+    const base = getDefaultMarkSetup();
+    const newData = {
+      pin: pin,
+      marks: {},
+      markDefinitions: base.defs,
+      mainMarkId: base.mainId,
+      subMarkIds: base.subs,
+      theme: "light",
+      dayMemos: {},
+      monthlyMainGoal: 0
+    };
+    await docRef.set(newData);
+    executeLogin(userId, pin, newData);
+    showToast("🎉 新規登録しました！");
+  } catch (e) { alert("エラーが発生しました: " + e.message); }
 }
 
 function loginUserBtnClicked() {
-    const userId = document.getElementById("userIdInput").value.trim();
-    const pin = document.getElementById("pinInput").value.trim();
-    if (!userId || !pin) { alert("ユーザーIDとパスワードを入力してください"); return; }
-    
-    db.collection("users").doc(userId).get().then((snap) => {
-        if (!snap.exists) { alert("ユーザーIDが見つかりません"); return; }
-        if (snap.data().pin !== pin) { alert("パスワードが違います"); return; }
-        executeLogin(userId, pin, snap.data());
-        showToast("ログインしました");
-    }).catch(e => alert("ログインエラー: " + e.message));
+  const userId = document.getElementById("userIdInput").value.trim();
+  const pin = document.getElementById("pinInput").value.trim();
+  if (!userId || !pin) { alert("ユーザーIDとパスワードを入力してください"); return; }
+  
+  db.collection("users").doc(userId).get().then((snap) => {
+    if (!snap.exists) { alert("ユーザーIDが見つかりません"); return; }
+    if (snap.data().pin !== pin) { alert("パスワードが違います"); return; }
+    executeLogin(userId, pin, snap.data());
+    showToast("ログインしました");
+  }).catch(e => alert("ログインエラー: " + e.message));
 }
 
 // ===== ログアウト =====
 function logoutUser() {
   if (!currentUserId) return;
   currentUserId = null; currentPin = null;
-  marks = {}; markDefinitions = {}; mainMarkId = null; subMarkIds = {}; dayMemos = {};
+  marks = {}; markDefinitions = {}; mainMarkId = null; subMarkIds = {}; dayMemos = {};dayMemoTags = {};
+  monthlyMainGoal = 0;
   loginHintShown = false; selectedDateKey = null; recentSubMarks = [];
   clearSessionFromLocal();
   currentTheme = "light"; currentMode = "mark";
@@ -2099,9 +2287,7 @@ function logoutUser() {
   showToast("ログアウトしました");
 }
 
-/* ★★★ ここからコピペして追加 ★★★ */
-
-// アカウント情報の変更（ユーザーID・パスワード）
+// アカウント情報の変更
 async function handleChangeSave() {
   if (!currentUserId) {
     showLoginRequiredHint();
@@ -2140,7 +2326,6 @@ async function handleChangeSave() {
         return;
       }
 
-      // 既に使われていないかチェック
       const newDocRef = db.collection("users").doc(newUserIdInput);
       const snap = await newDocRef.get();
       if (snap.exists) {
@@ -2156,17 +2341,17 @@ async function handleChangeSave() {
         mainMarkId,
         subMarkIds,
         theme: currentTheme,
-        dayMemos
+        dayMemos,
+        dayMemoTags,
+        monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0
       };
 
-      // 新しいIDでドキュメント作成 → 古いIDを削除
       await newDocRef.set(newData);
       await oldDocRef.delete();
 
       currentUserId = newUserIdInput;
       currentPin = newPin;
     } else {
-      // ユーザーIDはそのままでパスワードだけ変更
       await db.collection("users").doc(currentUserId).update({ pin: newPin });
       currentPin = newPin;
     }
@@ -2174,7 +2359,6 @@ async function handleChangeSave() {
     saveSessionToLocal();
     updateLoginStatusUI();
 
-    // 入力欄クリア
     document.getElementById("changeCurrentPasswordInput").value = "";
     document.getElementById("changeNewUserIdInput").value = "";
     document.getElementById("changeNewPasswordInput").value = "";
@@ -2218,19 +2402,16 @@ async function handleDeleteExecute() {
   }
 }
 
-/* ★★★ ここまで追加 ★★★ */
-
 function refreshCalendarView() {
-    renderCalendar();
-    ensureExtraUI();
-    renderLegendBar();
-    updateSelectedInfo(selectedDateKey);
-    updateMemoEditor(selectedDateKey);
-    renderMonthlySummary();
-    updateRokuyoHeader();
+  renderCalendar();
+  ensureExtraUI();
+  renderLegendBar();
+  updateSelectedInfo(selectedDateKey);
+  updateMemoEditor(selectedDateKey);
+  renderMonthlySummary();
+  updateTodaySummary();
+  updateRokuyoHeader();
 }
-
-
 
 // ===== UI更新関連 =====
 function updateLoginStatusUI() {
@@ -2269,6 +2450,49 @@ function updateModeUI() {
     memoBtn.classList.add("active"); markBtn.classList.remove("active");
   }
 }
+// 文字列からタグ配列に変換（カンマ or 空白区切り）
+function parseTagsFromInput(str) {
+  if (!str) return [];
+  return str
+    .split(/[,\s]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+// その日のタグを配列で取得（互換性用）
+function getTagsForDate(key) {
+  const raw = dayMemoTags[key];
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    return parseTagsFromInput(raw);
+  }
+  return [];
+}
+
+// メモ欄の下に、その日のタグチップを表示
+function renderMemoTagChipsForDate(key) {
+  const chipArea = document.getElementById("memoTagChips");
+  if (!chipArea) return;
+
+  chipArea.innerHTML = "";
+  const tags = getTagsForDate(key);
+  if (!tags.length) return;
+
+  tags.forEach(tag => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "tag-chip";
+    chip.textContent = "#" + tag;
+    chip.addEventListener("click", () => {
+      const tagInput = document.getElementById("tagSearchInput");
+      if (tagInput) tagInput.value = tag;
+      searchMemosByTag(tag);
+      showView("searchView");
+    });
+    chipArea.appendChild(chip);
+  });
+}
 
 // ===== 凡例・集計・選択情報・メモUIの動的挿入 =====
 function ensureExtraUI() {
@@ -2276,7 +2500,6 @@ function ensureExtraUI() {
   if (!grid || !grid.parentNode) return;
   const parent = grid.parentNode;
 
-  // 1. 凡例 (Legend)
   let legend = document.getElementById("legendBar");
   if (!legend) {
     legend = document.createElement("div");
@@ -2284,7 +2507,14 @@ function ensureExtraUI() {
     parent.appendChild(legend);
   }
 
-  // 2. 月次集計 (Summary)
+  let todaySummary = document.getElementById("todaySummary");
+  if (!todaySummary) {
+    todaySummary = document.createElement("div");
+    todaySummary.id = "todaySummary";
+    todaySummary.className = "today-summary";
+    parent.appendChild(todaySummary);
+  }
+
   let summary = document.getElementById("monthlySummary");
   if (!summary) {
     summary = document.createElement("div");
@@ -2292,7 +2522,6 @@ function ensureExtraUI() {
     parent.appendChild(summary);
   }
 
-  // 3. 選択日付情報 (Selected Info)
   let selectedInfo = document.getElementById("selectedInfo");
   if (!selectedInfo) {
     selectedInfo = document.createElement("div");
@@ -2300,14 +2529,22 @@ function ensureExtraUI() {
     parent.appendChild(selectedInfo);
   }
 
-  // 4. メモエディタ (Memo Editor)
   let memoContainer = document.getElementById("memoContainer");
   if (!memoContainer) {
     memoContainer = document.createElement("div");
     memoContainer.id = "memoContainer"; memoContainer.className = "memo-container";
-    memoContainer.innerHTML = `
+  memoContainer.innerHTML = `
       <div class="memo-header"><span id="memoDateLabel"></span></div>
       <textarea id="memoTextarea" placeholder="この日のメモを入力（自動保存されません）"></textarea>
+
+      <div class="form-group" style="margin-top:6px;">
+        <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:2px;">
+          タグ（カンマ区切りで複数指定できます）
+        </label>
+        <input id="memoTagsInput" type="text" placeholder="例: 勉強, 推し活" />
+        <div id="memoTagChips" class="tag-chip-list"></div>
+      </div>
+
       <div class="memo-buttons">
         <button id="memoClearBtn" type="button" class="danger-outline">削除</button>
         <button id="memoSaveBtn" type="button" class="primary">保存</button>
@@ -2318,7 +2555,6 @@ function ensureExtraUI() {
     setupMemoButtons();
   }
 }
-
 
 // ===== 凡例の描画 =====
 function renderLegendBar() {
@@ -2349,11 +2585,11 @@ function renderLegendBar() {
     iconSpan.textContent = def.icon;
     iconSpan.style.color = def.color;
     wrapper.appendChild(iconSpan);
-    wrapper.appendChild(document.createTextNode(item.label));
+    const labelText = def.label ? def.label : item.label;
+    wrapper.appendChild(document.createTextNode(labelText));
     legend.appendChild(wrapper);
   });
 }
-
 
 // ===== 選択中日付の処理 =====
 function setSelectedDate(key) {
@@ -2375,8 +2611,6 @@ function updateSelectedInfo(key) {
 
   infoEl.style.display = "block";
   const [y, m, d] = key.split("-").map(Number);
-  
-  // 六曜を取得
   const rokuyo = calculateRokuyo(y, m, d);
 
   let html = `<span>${y}年${m}月${d}日 (${getDayName(y,m,d)}) [${rokuyo}] : </span>`;
@@ -2384,7 +2618,8 @@ function updateSelectedInfo(key) {
   const markId = marks[key];
   if (markId && markDefinitions[markId]) {
     const def = markDefinitions[markId];
-    html += `<span style="color:${def.color}; margin:0 4px;">${def.icon}</span>マークあり`;
+    const labelText = def.label ? `${def.icon} ${def.label}` : def.icon;
+    html += `<span style="color:${def.color}; margin:0 4px;">${labelText}</span>マークあり`;
   } else {
     html += `<span>マークなし</span>`;
   }
@@ -2397,7 +2632,7 @@ function updateSelectedInfo(key) {
 }
 
 function getDayName(y, m, d) {
-    return ["日","月","火","水","木","金","土"][new Date(y, m-1, d).getDay()];
+  return ["日","月","火","水","木","金","土"][new Date(y, m-1, d).getDay()];
 }
 
 // ===== メモエディタ更新 =====
@@ -2407,89 +2642,139 @@ function updateMemoEditor(key) {
   const dateLabel = document.getElementById("memoDateLabel");
   if (!container) return;
 
-  if (!currentUserId || !key) { container.style.display = "none"; return; }
+  if (!currentUserId || !key) {
+      container.style.display = "none";
+      return;
+  }
+
   container.style.display = "block";
   const [y, m, d] = key.split("-");
   dateLabel.textContent = `${y}年${parseInt(m)}月${parseInt(d)}日のメモ`;
   textarea.value = dayMemos[key] || "";
+
+  const tagsInput = document.getElementById("memoTagsInput");
+  if (tagsInput) {
+      const tags = getTagsForDate(key);
+      tagsInput.value = tags.join(", ");
+  }
+  renderMemoTagChipsForDate(key);
 }
 
 function setupMemoButtons() {
-    document.getElementById("memoSaveBtn").addEventListener("click", () => {
+    const memoSaveBtn = document.getElementById("memoSaveBtn");
+    const memoClearBtn = document.getElementById("memoClearBtn");
+    if (!memoSaveBtn || !memoClearBtn) return;
+
+    memoSaveBtn.addEventListener("click", () => {
         if (!selectedDateKey) return;
+
         const val = document.getElementById("memoTextarea").value.trim();
+        const tagsInput = document.getElementById("memoTagsInput");
+        const tags = tagsInput ? parseTagsFromInput(tagsInput.value) : [];
+
+        // メモ本体
         if (val) dayMemos[selectedDateKey] = val;
         else delete dayMemos[selectedDateKey];
+
+        // タグ
+        if (tags.length) dayMemoTags[selectedDateKey] = tags;
+        else delete dayMemoTags[selectedDateKey];
+
         saveUserStateToCloud();
         updateCell(selectedDateKey);
         updateSelectedInfo(selectedDateKey);
+        renderMemoTagChipsForDate(selectedDateKey);
+        renderTagSuggestions();
         showToast("メモを保存しました");
     });
-    document.getElementById("memoClearBtn").addEventListener("click", () => {
-        if (!selectedDateKey || !dayMemos[selectedDateKey]) return;
-        if(confirm("この日のメモを削除しますか？")) {
+
+    memoClearBtn.addEventListener("click", () => {
+        if (!selectedDateKey || (!dayMemos[selectedDateKey] && !dayMemoTags[selectedDateKey])) return;
+        if (confirm("この日のメモとタグを削除しますか？")) {
             delete dayMemos[selectedDateKey];
+            delete dayMemoTags[selectedDateKey];
+
             document.getElementById("memoTextarea").value = "";
+            const tagsInput = document.getElementById("memoTagsInput");
+            if (tagsInput) tagsInput.value = "";
+            renderMemoTagChipsForDate(selectedDateKey);
+
             saveUserStateToCloud();
             updateCell(selectedDateKey);
             updateSelectedInfo(selectedDateKey);
+            renderTagSuggestions();
             showToast("メモを削除しました");
         }
     });
 }
 
-// ===== 六曜計算ロジック（簡易版・2000年〜対応） =====
-// 旧暦計算は非常に複雑なため、ここでは近似的な計算または固定テーブルを用いるのが一般的です。
-// 今回は、ライブラリを使わず実装できる範囲で、ある程度実用的な簡易ロジック（月齢ベース）を採用します。
-// ※厳密な精度を保証するものではありません。
+// ===== 六曜計算ロジック（簡易） =====
 function calculateRokuyo(year, month, day) {
-    // 基準日：2000年1月1日（旧暦1999年11月25日、先勝）からの経過日数と月齢を利用
-    const baseDate = new Date(2000, 0, 1);
-    const targetDate = new Date(year, month - 1, day);
-    const diffDays = Math.floor((targetDate - baseDate) / (1000 * 60 * 60 * 24));
+  const baseDate = new Date(2000, 0, 1);
+  const targetDate = new Date(year, month - 1, day);
+  const diffDays = Math.floor((targetDate - baseDate) / (1000 * 60 * 60 * 24));
 
-    // 朔望月（月の満ち欠け周期）平均約29.53日
-    const lunarMonth = 29.53059;
-    // 簡易的な旧暦の日付（月齢から推測）
-    let lunarDay = (diffDays % lunarMonth) + 1; // 1.0 ~ 30.5くらい
-    
-    // 簡易的な旧暦の月（本来はもっと複雑）
-    // 年間の通算日からざっくり計算
-    const startOfYear = new Date(year, 0, 1);
-    const dayOfYear = Math.floor((targetDate - startOfYear) / (1000 * 60 * 60 * 24)) + 1;
-    let lunarMonthApprox = Math.floor(dayOfYear / lunarMonth) + 1;
-    if (lunarMonthApprox > 12) lunarMonthApprox = 12; // 調整
+  const lunarMonth = 29.53059;
+  let lunarDay = (diffDays % lunarMonth) + 1;
+  
+  const startOfYear = new Date(year, 0, 1);
+  const dayOfYear = Math.floor((targetDate - startOfYear) / (1000 * 60 * 60 * 24)) + 1;
+  let lunarMonthApprox = Math.floor(dayOfYear / lunarMonth) + 1;
+  if (lunarMonthApprox > 12) lunarMonthApprox = 12;
 
-    // 六曜の計算式： (旧暦月 + 旧暦日) % 6
-    // 0:大安, 1:赤口, 2:先勝, 3:友引, 4:先負, 5:仏滅
-    const rokuyoIndex = (lunarMonthApprox + Math.floor(lunarDay)) % 6;
-    const rokuyoList = ["大安", "赤口", "先勝", "友引", "先負", "仏滅"];
-    
-    return rokuyoList[rokuyoIndex];
+  const rokuyoIndex = (lunarMonthApprox + Math.floor(lunarDay)) % 6;
+  const rokuyoList = ["大安", "赤口", "先勝", "友引", "先負", "仏滅"];
+  
+  return rokuyoList[rokuyoIndex];
 }
 
 function updateRokuyoHeader() {
-    const title = document.getElementById("calendarTitle");
-    // 今日の日付で六曜を計算して表示
-    const now = new Date();
-    const rokuyo = calculateRokuyo(now.getFullYear(), now.getMonth()+1, now.getDate());
-    const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][now.getDay()];
+  const title = document.getElementById("calendarTitle");
+  const now = new Date();
+  const rokuyo = calculateRokuyo(now.getFullYear(), now.getMonth()+1, now.getDate());
+  const dayOfWeek = ["日", "月", "火", "水", "木", "金", "土"][now.getDay()];
 
-    let info = title.querySelector(".rokuyo-info");
-    if (!info) {
-        info = document.createElement("span");
-        info.className = "rokuyo-info";
-        title.appendChild(info);
-    }
-    
-    let rokuyoClass = "";
-    if (rokuyo === "大安") rokuyoClass = "rokuyo-taian";
-    else if (rokuyo === "仏滅") rokuyoClass = "rokuyo-butsumetsu";
-    else if (rokuyo === "友引") rokuyoClass = "rokuyo-tomobiki";
+  let info = title.querySelector(".rokuyo-info");
+  if (!info) {
+    info = document.createElement("span");
+    info.className = "rokuyo-info";
+    title.appendChild(info);
+  }
+  
+  let rokuyoClass = "";
+  if (rokuyo === "大安") rokuyoClass = "rokuyo-taian";
+  else if (rokuyo === "仏滅") rokuyoClass = "rokuyo-butsumetsu";
+  else if (rokuyo === "友引") rokuyoClass = "rokuyo-tomobiki";
 
-    info.innerHTML = `今日は ${now.getMonth()+1}月${now.getDate()}日(${dayOfWeek}) <span class="rokuyo-label ${rokuyoClass}">${rokuyo}</span>`;
+  info.innerHTML = `今日は ${now.getMonth()+1}月${now.getDate()}日(${dayOfWeek}) <span class="rokuyo-label ${rokuyoClass}">${rokuyo}</span>`;
 }
 
+// ===== 今日のサマリ =====
+function updateTodaySummary() {
+  const el = document.getElementById("todaySummary");
+  if (!el) return;
+  if (!currentUserId) {
+    el.style.display = "none";
+    return;
+  }
+  const today = new Date();
+  const key = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const markId = marks[key];
+  const memo = dayMemos[key];
+
+  let text = "今日: ";
+  if (markId && markDefinitions[markId]) {
+    const def = markDefinitions[markId];
+    const labelText = def.label ? `${def.icon} ${def.label}` : def.icon;
+    text += `${labelText} / `;
+  } else {
+    text += "マークなし / ";
+  }
+  text += memo ? "メモあり" : "メモなし";
+
+  el.textContent = text;
+  el.style.display = "block";
+}
 
 // ===== カレンダー描画 =====
 function dateKey(y, m, d) {
@@ -2534,11 +2819,10 @@ function renderCalendar() {
     const dow = (firstDow + day - 1) % 7;
     if (dow === 0) cell.classList.add("sun"); else if (dow === 6) cell.classList.add("sat");
 
-    // 祝日判定 (簡易版: 固定+ハッピーマンデーの一部)
     const holiday = getHolidayName(currentYear, currentMonth, day, dow);
     if (holiday) {
-        cell.classList.add("holiday");
-        cell.querySelector(".holiday-label").textContent = holiday;
+      cell.classList.add("holiday");
+      cell.querySelector(".holiday-label").textContent = holiday;
     }
 
     if (key === todayKey) cell.classList.add("today");
@@ -2549,89 +2833,78 @@ function renderCalendar() {
   }
 
   document.getElementById("monthLabel").textContent = `${currentYear}年 ${currentMonth + 1}月`;
-  
-  // 今日ボタンのスタイル更新
+
   const isCurrentMonth = today.getFullYear() === currentYear && today.getMonth() === currentMonth;
   document.getElementById("todayBtn").classList.toggle("today-active", !isCurrentMonth);
 }
 
 // 簡易祝日判定
 function getHolidayName(y, m, d, dow) {
-    const month = m + 1;
-    // 固定祝日
-    if (month === 1 && d === 1) return "元日";
-    if (month === 2 && d === 11) return "建国記念";
-    if (month === 2 && d === 23) return "天皇誕生日";
-    if (month === 4 && d === 29) return "昭和の日";
-    if (month === 5 && d === 3) return "憲法記念";
-    if (month === 5 && d === 4) return "みどりの日";
-    if (month === 5 && d === 5) return "こどもの日";
-    if (month === 11 && d === 3) return "文化の日";
-    if (month === 11 && d === 23) return "勤労感謝";
-    
-    // ハッピーマンデー (第2月曜など)
-    function isNthMonday(nth) {
-        if (dow !== 1) return false; // 月曜でない
-        const firstMondayDay = (9 - new Date(y, m, 1).getDay()) % 7 || 7;
-        return d === firstMondayDay + (nth - 1) * 7;
-    }
-    if (month === 1 && isNthMonday(2)) return "成人の日";
-    if (month === 7 && isNthMonday(3)) return "海の日";
-    if (month === 9 && isNthMonday(3)) return "敬老の日";
-    if (month === 10 && isNthMonday(2)) return "スポーツの日";
+  const month = m + 1;
+  if (month === 1 && d === 1) return "元日";
+  if (month === 2 && d === 11) return "建国記念";
+  if (month === 2 && d === 23) return "天皇誕生日";
+  if (month === 4 && d === 29) return "昭和の日";
+  if (month === 5 && d === 3) return "憲法記念";
+  if (month === 5 && d === 4) return "みどりの日";
+  if (month === 5 && d === 5) return "こどもの日";
+  if (month === 11 && d === 3) return "文化の日";
+  if (month === 11 && d === 23) return "勤労感謝";
 
-    // ※春分・秋分、振替休日は省略（実装が複雑なため）
-    return "";
+  function isNthMonday(nth) {
+    if (dow !== 1) return false;
+    const firstDay = new Date(y, m, 1).getDay();
+    const firstMondayDay = (9 - firstDay) % 7 || 7;
+    return d === firstMondayDay + (nth - 1) * 7;
+  }
+  if (month === 1 && isNthMonday(2)) return "成人の日";
+  if (month === 7 && isNthMonday(3)) return "海の日";
+  if (month === 9 && isNthMonday(3)) return "敬老の日";
+  if (month === 10 && isNthMonday(2)) return "スポーツの日";
+
+  return "";
 }
-
 
 function updateCell(key, cell = null) {
-    if (!cell) cell = document.querySelector(`.day[data-date-key="${key}"]`);
-    if (!cell) return;
+  if (!cell) cell = document.querySelector(`.day[data-date-key="${key}"]`);
+  if (!cell) return;
 
-    const iconEl = cell.querySelector(".mark-icon");
-    const memoEl = cell.querySelector(".memo-indicator");
+  const iconEl = cell.querySelector(".mark-icon");
+  const memoEl = cell.querySelector(".memo-indicator");
 
-    // マーク更新
-    const markId = marks[key];
-    if (markId && markDefinitions[markId]) {
-        const def = markDefinitions[markId];
-        cell.classList.add("has-mark");
-        iconEl.textContent = def.icon;
-        iconEl.style.color = def.color;
-    } else {
-        cell.classList.remove("has-mark");
-        iconEl.textContent = "";
-    }
+  const markId = marks[key];
+  if (markId && markDefinitions[markId]) {
+    const def = markDefinitions[markId];
+    cell.classList.add("has-mark");
+    iconEl.textContent = def.icon;
+    iconEl.style.color = def.color;
+  } else {
+    cell.classList.remove("has-mark");
+    iconEl.textContent = "";
+  }
 
-    // メモ更新
-    if (dayMemos[key]) {
-        memoEl.textContent = "📝";
-    } else {
-        memoEl.textContent = "";
-    }
+  if (dayMemos[key]) {
+    memoEl.textContent = "📝";
+  } else {
+    memoEl.textContent = "";
+  }
 }
-
 
 // ===== タップ/長押し/スワイプ処理 =====
 function attachPressHandlers(cell, key) {
   let pressTimer = null;
 
-  // Pointer Events で統一的に扱う
   cell.addEventListener("pointerdown", (ev) => {
     if (cell.classList.contains("empty")) return;
-    // スワイプ開始位置を記録 (カレンダーグリッド全体でハンドリングするため、ここでは伝播させる)
-    
     if (!currentUserId) {
-        if(ev.isPrimary) showLoginRequiredHint();
-        return;
+      if (ev.isPrimary) showLoginRequiredHint();
+      return;
     }
 
-    // 右クリック
     if (ev.button === 2 || ev.ctrlKey) {
-        ev.preventDefault();
-        handleLongPress(cell, key);
-        return;
+      ev.preventDefault();
+      handleLongPress(cell, key);
+      return;
     }
 
     longPressTriggered = false;
@@ -2646,118 +2919,95 @@ function attachPressHandlers(cell, key) {
     if (!currentUserId || cell.classList.contains("empty")) return;
     if (ev.button === 2 || longPressTriggered) return;
 
-    // シングルタップ処理
     handleSingleTap(cell, key);
   });
 
   cell.addEventListener("pointercancel", () => clearTimeout(pressTimer));
-  // スクロール発生時もキャンセル
-  cell.addEventListener("pointermove", (ev) => {
-      // 多少の動きは許容するが、大きく動いたら長押しキャンセル
-      // (今回はスワイプと共存させるため、厳密な判定は省略し、ブラウザのスクロール判定に任せる)
-  });
-  
-  // コンテキストメニュー無効化
   cell.addEventListener("contextmenu", e => e.preventDefault());
 }
 
 function handleSingleTap(cell, key) {
-    setSelectedDate(key);
-    if (currentMode === "memo") {
-        // メモモード：入力欄にフォーカス
-        document.getElementById("memoTextarea").focus();
-    } else {
-        // マークモード：メインマークをトグル
-        toggleMainMark(key, cell);
-    }
+  setSelectedDate(key);
+  if (currentMode === "memo") {
+    document.getElementById("memoTextarea").focus();
+  } else {
+    toggleMainMark(key, cell);
+  }
 }
 
 function handleLongPress(cell, key) {
-    setSelectedDate(key);
-    if (currentMode === "mark") {
-        openMarkMenu(cell, key);
-    } else {
-        // メモモードの長押し：とりあえず振動フィードバック
-        if (navigator.vibrate) navigator.vibrate(50);
-    }
+  setSelectedDate(key);
+  if (currentMode === "mark") {
+    openMarkMenu(cell, key);
+  } else {
+    if (navigator.vibrate) navigator.vibrate(50);
+  }
 }
 
 // メインマークのトグル
 function toggleMainMark(key, cell) {
-    if (!mainMarkId) { showToast("メインマークが未設定です"); return; }
-    if (marks[key]) {
-        delete marks[key];
-    } else {
-        marks[key] = mainMarkId;
-        // アニメーション再生
-        cell.classList.remove("mark-bounce");
-        void cell.offsetWidth; // リフロー
-        cell.classList.add("mark-bounce");
-    }
-    saveUserStateToCloud();
-    updateCell(key, cell);
-    renderMonthlySummary();
-    // ストリーク表示更新のため、今日の日付を再選択
-    if (key === dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())){
-        renderMonthlySummary();
-    }
+  if (!mainMarkId) { showToast("メインマークが未設定です"); return; }
+  if (marks[key]) {
+    delete marks[key];
+  } else {
+    marks[key] = mainMarkId;
+    cell.classList.remove("mark-bounce");
+    void cell.offsetWidth;
+    cell.classList.add("mark-bounce");
+  }
+  saveUserStateToCloud();
+  updateCell(key, cell);
+  renderMonthlySummary();
+  updateTodaySummary();
 }
 
-
-// ===== スワイプによる月移動の実装 =====
+// ===== スワイプによる月移動 =====
 const calendarGrid = document.getElementById("calendarGrid");
 calendarGrid.addEventListener("touchstart", (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
 }, { passive: true });
 
 calendarGrid.addEventListener("touchend", (e) => {
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    const diffX = touchEndX - touchStartX;
-    const diffY = touchEndY - touchStartY;
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+  const diffX = touchEndX - touchStartX;
+  const diffY = touchEndY - touchStartY;
 
-    // 横方向の移動量が大きく、縦方向の移動が少ない場合をスワイプと判定
-    if (Math.abs(diffX) > 60 && Math.abs(diffY) < 40) {
-        if (diffX > 0) {
-            changeMonth(-1); // 右スワイプ → 前月
-        } else {
-            changeMonth(1); // 左スワイプ → 翌月
-        }
+  if (Math.abs(diffX) > 60 && Math.abs(diffY) < 40) {
+    if (diffX > 0) {
+      changeMonth(-1);
+    } else {
+      changeMonth(1);
     }
+  }
 });
 
-
-// ===== マークメニュー表示 =====
+// ===== マークメニュー =====
 const markMenu = document.getElementById("markMenu");
 function openMarkMenu(cell, key) {
   markMenu.innerHTML = "";
-  // 最近使ったマーク
   if (recentSubMarks.length) {
-      markMenu.appendChild(createMenuHeader("最近"));
-      recentSubMarks.forEach(id => markMenu.appendChild(createMarkMenuItem(id, null, true)));
-      markMenu.appendChild(document.createElement("hr"));
+    markMenu.appendChild(createMenuHeader("最近"));
+    recentSubMarks.forEach(id => markMenu.appendChild(createMarkMenuItem(id, null, true)));
+    markMenu.appendChild(document.createElement("hr"));
   }
-  // サブマーク
   for (let i = 1; i <= 6; i++) {
-      const id = subMarkIds[i];
-      if (id && markDefinitions[id]) {
-          markMenu.appendChild(createMarkMenuItem(id, `サブ${i}`));
-      }
+    const id = subMarkIds[i];
+    if (id && markDefinitions[id]) {
+      markMenu.appendChild(createMarkMenuItem(id, `サブ${i}`));
+    }
   }
-  // 削除ボタン
   const clearBtn = document.createElement("button");
   clearBtn.innerHTML = `<span class="icon">×</span> 削除`;
   clearBtn.dataset.action = "clear";
   markMenu.appendChild(clearBtn);
 
-  // 表示位置計算
   const rect = cell.getBoundingClientRect();
   markMenu.style.display = "flex";
   let left = rect.left + window.scrollX - (markMenu.offsetWidth - rect.width) / 2;
   let top = rect.bottom + window.scrollY + 8;
 
-  // 画面外にはみ出さないように調整
   if (left < 4) left = 4;
   if (left + markMenu.offsetWidth > window.innerWidth - 4) left = window.innerWidth - markMenu.offsetWidth - 4;
 
@@ -2765,73 +3015,73 @@ function openMarkMenu(cell, key) {
   markMenu.style.top = top + "px";
   markMenu.dataset.key = key;
   
-  // バイブレーション（対応端末のみ）
   if (navigator.vibrate) navigator.vibrate(30);
 }
 
 function createMenuHeader(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    div.style.fontSize = "0.7rem"; div.style.color = "var(--text-muted)"; div.style.padding = "2px 8px";
-    return div;
+  const div = document.createElement("div");
+  div.textContent = text;
+  div.style.fontSize = "0.7rem";
+  div.style.color = "var(--text-muted)";
+  div.style.padding = "2px 8px";
+  return div;
 }
 
 function createMarkMenuItem(markId, label, isRecent = false) {
-    const def = markDefinitions[markId];
-    const btn = document.createElement("button");
-    btn.innerHTML = `<span class="icon" style="color:${def.color}">${def.icon}</span> ${label || def.icon}`;
-    btn.dataset.markId = markId;
-    if (isRecent) btn.dataset.recent = "true";
-    return btn;
+  const def = markDefinitions[markId];
+  const btn = document.createElement("button");
+  const labelText = def.label || label || def.icon;
+  btn.innerHTML = `<span class="icon" style="color:${def.color}">${def.icon}</span> ${labelText}`;
+  btn.dataset.markId = markId;
+  if (isRecent) btn.dataset.recent = "true";
+  return btn;
 }
 
 markMenu.addEventListener("click", (e) => {
-    const btn = e.target.closest("button");
-    if (!btn) return;
-    const key = markMenu.dataset.key;
-    if (btn.dataset.action === "clear") {
-        delete marks[key];
-    } else {
-        const markId = btn.dataset.markId;
-        marks[key] = markId;
-        if (!btn.dataset.recent) registerRecentSubMark(markId);
-    }
-    saveUserStateToCloud();
-    updateCell(key);
-    renderMonthlySummary();
-    markMenu.style.display = "none";
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const key = markMenu.dataset.key;
+  if (btn.dataset.action === "clear") {
+    delete marks[key];
+  } else {
+    const markId = btn.dataset.markId;
+    marks[key] = markId;
+    if (!btn.dataset.recent) registerRecentSubMark(markId);
+  }
+  saveUserStateToCloud();
+  updateCell(key);
+  renderMonthlySummary();
+  updateTodaySummary();
+  markMenu.style.display = "none";
 });
 
-// メニュー外タップで閉じる
 document.addEventListener("pointerdown", (e) => {
-    if (markMenu.style.display === "flex" && !markMenu.contains(e.target)) {
-        markMenu.style.display = "none";
-    }
+  if (markMenu.style.display === "flex" && !markMenu.contains(e.target)) {
+    markMenu.style.display = "none";
+  }
 });
 
-
-// ===== 月移動・ナビゲーション =====
+// ===== 月移動 =====
 function changeMonth(delta) {
-    currentMonth += delta;
-    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-    else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-    renderCalendar();
-    const animClass = delta > 0 ? "anim-right" : "anim-left";
-    document.getElementById("calendarGrid").classList.add(animClass);
-    setTimeout(() => document.getElementById("calendarGrid").classList.remove(animClass), 300);
+  currentMonth += delta;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  renderCalendar();
+  const animClass = delta > 0 ? "anim-right" : "anim-left";
+  document.getElementById("calendarGrid").classList.add(animClass);
+  setTimeout(() => document.getElementById("calendarGrid").classList.remove(animClass), 300);
 }
 
 document.getElementById("prevMonth").addEventListener("click", () => changeMonth(-1));
 document.getElementById("nextMonth").addEventListener("click", () => changeMonth(1));
 document.getElementById("todayBtn").addEventListener("click", () => {
-    const now = new Date();
-    currentYear = now.getFullYear(); currentMonth = now.getMonth();
-    renderCalendar();
-    setSelectedDate(dateKey(currentYear, currentMonth, now.getDate()));
+  const now = new Date();
+  currentYear = now.getFullYear(); currentMonth = now.getMonth();
+  renderCalendar();
+  setSelectedDate(dateKey(currentYear, currentMonth, now.getDate()));
 });
 
-
-// ===== 月次集計とストリーク計算 =====
+// ===== 月次集計とストリーク＆目標 =====
 function renderMonthlySummary() {
   const container = document.getElementById("monthlySummary");
   if (!container) return;
@@ -2840,28 +3090,41 @@ function renderMonthlySummary() {
 
   const counts = {};
   Object.entries(marks).forEach(([key, markId]) => {
-      const [y, m] = key.split("-").map(Number);
-      if (y === currentYear && m === currentMonth + 1) {
-          counts[markId] = (counts[markId] || 0) + 1;
-      }
+    const [y, m] = key.split("-").map(Number);
+    if (y === currentYear && m === currentMonth + 1) {
+      counts[markId] = (counts[markId] || 0) + 1;
+    }
   });
   
   const streak = calculateMainMarkStreak();
   const streakHtml = streak > 0 
-      ? `<span class="streak-info">現在🔥<span>${streak}</span>日連続!</span>` 
-      : `<span style="font-size:0.8rem; color:var(--text-muted);">継続記録ストップ中</span>`;
+    ? `<span class="streak-info">現在🔥<span>${streak}</span>日連続!</span>` 
+    : `<span style="font-size:0.8rem; color:var(--text-muted);">継続記録ストップ中</span>`;
 
   container.innerHTML = `
     <div class="monthly-summary-header">
-        <h3 class="monthly-summary-title">今月の集計</h3>
-        ${streakHtml}
+      <h3 class="monthly-summary-title">今月の集計</h3>
+      ${streakHtml}
     </div>
   `;
 
+  // 目標進捗
+  const mainCountThisMonth = mainMarkId ? (counts[mainMarkId] || 0) : 0;
+  if (monthlyMainGoal && monthlyMainGoal > 0) {
+    const percent = Math.min(100, Math.round((mainCountThisMonth / monthlyMainGoal) * 100));
+    const goalWrap = document.createElement("div");
+    goalWrap.className = "monthly-goal-wrap";
+    goalWrap.innerHTML = `
+      <div class="monthly-goal-text">今月の目標達成度：${mainCountThisMonth} / ${monthlyMainGoal}日（${percent}%）</div>
+      <div class="monthly-goal-bar-wrap"><div class="monthly-goal-bar" style="width:${percent}%;"></div></div>
+    `;
+    container.appendChild(goalWrap);
+  }
+
   const sortedIds = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
   if (!sortedIds.length) {
-      container.innerHTML += `<p class="hint">まだマークがありません</p>`;
-      return;
+    container.innerHTML += `<p class="hint">まだマークがありません</p>`;
+    return;
   }
   
   const list = document.createElement("div");
@@ -2869,114 +3132,108 @@ function renderMonthlySummary() {
   const max = counts[sortedIds[0]];
 
   sortedIds.forEach(id => {
-      const def = markDefinitions[id];
-      const count = counts[id];
-      const row = document.createElement("div"); row.className = "monthly-summary-item";
-      row.innerHTML = `
-        <div class="monthly-summary-label">
-            <span class="monthly-summary-icon" style="color:${def.color}">${def.icon}</span>
-            <span>${count}日</span>
-        </div>
-        <div class="monthly-summary-bar-wrap">
-            <div class="monthly-summary-bar" style="width:${(count/max)*100}%; background:${def.color}"></div>
-        </div>
-      `;
-      list.appendChild(row);
+    const def = markDefinitions[id];
+    const count = counts[id];
+    const row = document.createElement("div"); row.className = "monthly-summary-item";
+    const labelText = def.label ? def.label : "";
+    row.innerHTML = `
+      <div class="monthly-summary-label">
+        <span class="monthly-summary-icon" style="color:${def.color}">${def.icon}</span>
+        <span>${labelText ? labelText + "：" : ""}${count}日</span>
+      </div>
+      <div class="monthly-summary-bar-wrap">
+        <div class="monthly-summary-bar" style="width:${(count/max)*100}%; background:${def.color}"></div>
+      </div>
+    `;
+    list.appendChild(row);
   });
   container.appendChild(list);
 }
 
-// メインマークの継続ストリーク計算
 function calculateMainMarkStreak() {
-    if (!mainMarkId) return 0;
-    const today = new Date();
-    let streak = 0;
-    // 今日から遡ってチェック
-    for (let i = 0; i < 365; i++) {
-        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
-        const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
-        if (marks[key] === mainMarkId) {
-            streak++;
-        } else {
-            // 今日がまだで、昨日がマークされていたら継続とみなす（まだ途切れてない）
-            if (i === 0 && streak === 0) continue;
-            break; 
-        }
+  if (!mainMarkId) return 0;
+  const today = new Date();
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+    const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    if (marks[key] === mainMarkId) {
+      streak++;
+    } else {
+      if (i === 0 && streak === 0) continue;
+      break; 
     }
-    return streak;
+  }
+  return streak;
 }
 
-
-// ===== 新機能：年間アクティビティ（棒グラフ）描画 =====
+// ===== 年間アクティビティ（棒グラフ）描画 =====
 function renderHeatmap() {
-    const list = document.getElementById("heatmapGrid");
-    if (!list) return;
-    list.innerHTML = "";
+  const list = document.getElementById("heatmapGrid");
+  if (!list) return;
+  list.innerHTML = "";
 
-    if (!currentUserId) {
-        const p = document.createElement("p");
-        p.className = "hint";
-        p.textContent = "ログインすると年間グラフが表示されます。";
-        list.appendChild(p);
-        return;
-    }
+  if (!currentUserId) {
+    const p = document.createElement("p");
+    p.className = "hint";
+    p.textContent = "ログインすると年間グラフが表示されます。";
+    list.appendChild(p);
+    return;
+  }
 
-    const now = new Date();
-    // 直近12か月分の (year, month) を古い順に並べる
-    const ymList = [];
-    for (let i = 11; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        ymList.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
-    }
+  const now = new Date();
+  const ymList = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    ymList.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+  }
 
-    // 月ごとの「マークがついた日数」をカウント
-    const monthlyCounts = {};
-    Object.keys(marks).forEach(key => {
-        const [y, m] = key.split("-").map(Number);
-        const id = `${y}-${m}`;
-        monthlyCounts[id] = (monthlyCounts[id] || 0) + 1;
-    });
+  const monthlyCounts = {};
+  Object.keys(marks).forEach(key => {
+    const [y, m] = key.split("-").map(Number);
+    const id = `${y}-${m}`;
+    monthlyCounts[id] = (monthlyCounts[id] || 0) + 1;
+  });
 
-    const counts = ymList.map(ym => monthlyCounts[`${ym.year}-${ym.month}`] || 0);
-    const max = Math.max(...counts, 0);
+  const counts = ymList.map(ym => monthlyCounts[`${ym.year}-${ym.month}`] || 0);
+  const max = Math.max(...counts, 0);
 
-    if (max === 0) {
-        const p = document.createElement("p");
-        p.className = "hint";
-        p.textContent = "まだマークがついた日がありません。";
-        list.appendChild(p);
-        return;
-    }
+  if (max === 0) {
+    const p = document.createElement("p");
+    p.className = "hint";
+    p.textContent = "まだマークがついた日がありません。";
+    list.appendChild(p);
+    return;
+  }
 
-    ymList.forEach((ym, index) => {
-        const count = counts[index];
-        const row = document.createElement("div");
-        row.className = "year-summary-item";
+  ymList.forEach((ym, index) => {
+    const count = counts[index];
+    const row = document.createElement("div");
+    row.className = "year-summary-item";
+    if (count === max && max > 0) row.classList.add("year-summary-max");
 
-        const label = document.createElement("span");
-        label.className = "year-summary-label";
-        label.textContent = `${ym.month}月`;
-        label.title = `${ym.year}年${ym.month}月`;
-        row.appendChild(label);
+    const label = document.createElement("span");
+    label.className = "year-summary-label";
+    label.textContent = `${ym.month}月`;
+    label.title = `${ym.year}年${ym.month}月`;
+    row.appendChild(label);
 
-        const barWrap = document.createElement("div");
-        barWrap.className = "year-summary-bar-wrap";
-        const bar = document.createElement("div");
-        bar.className = "year-summary-bar";
-        bar.style.width = max > 0 ? `${(count / max) * 100}%` : "0%";
-        barWrap.appendChild(bar);
-        row.appendChild(barWrap);
+    const barWrap = document.createElement("div");
+    barWrap.className = "year-summary-bar-wrap";
+    const bar = document.createElement("div");
+    bar.className = "year-summary-bar";
+    bar.style.width = max > 0 ? `${(count / max) * 100}%` : "0%";
+    barWrap.appendChild(bar);
+    row.appendChild(barWrap);
 
-        const num = document.createElement("span");
-        num.className = "year-summary-count";
-        num.textContent = `${count}日`;
-        row.appendChild(num);
+    const num = document.createElement("span");
+    num.className = "year-summary-count";
+    num.textContent = count === max ? `${count}日 🏆` : `${count}日`;
+    row.appendChild(num);
 
-        list.appendChild(row);
-    });
+    list.appendChild(row);
+  });
 }
-
-
 
 // ===== 新機能：メモ検索 =====
 function searchMemos(keyword) {
@@ -3005,12 +3262,29 @@ function searchMemos(keyword) {
     hits.forEach(hit => {
         const div = document.createElement("div");
         div.className = "search-result-item";
-        // キーワードをハイライト表示
-        const highlightedText = hit.text.replace(new RegExp(keyword, 'g'), `<em>${keyword}</em>`);
-        div.innerHTML = `
-            <div class="result-date">${hit.key}</div>
-            <div class="result-snippet">${highlightedText}</div>
-        `;
+
+        const dateDiv = document.createElement("div");
+        dateDiv.className = "result-date";
+        dateDiv.textContent = hit.key;
+        div.appendChild(dateDiv);
+
+        const snippetDiv = document.createElement("div");
+        snippetDiv.className = "result-snippet";
+
+        // キーワードをハイライト（正規表現エスケープ）
+        const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
+        const safe = hit.text.replace(regex, m => `<em>${m}</em>`);
+        snippetDiv.innerHTML = safe;
+        div.appendChild(snippetDiv);
+
+        const tags = getTagsForDate(hit.key);
+        if (tags.length) {
+            const tagsDiv = document.createElement("div");
+            tagsDiv.className = "result-tags";
+            tagsDiv.textContent = tags.map(t => `#${t}`).join(" ");
+            div.appendChild(tagsDiv);
+        }
+
         div.addEventListener("click", () => {
             // その日付のカレンダーへジャンプ
             const [y, m, d] = hit.key.split("-").map(Number);
@@ -3022,128 +3296,389 @@ function searchMemos(keyword) {
         resultsContainer.appendChild(div);
     });
 }
+// タグで検索
+function searchMemosByTag(tag) {
+    const resultsContainer = document.getElementById("searchResults");
+    resultsContainer.innerHTML = "";
 
-
-// ===== 新機能：データバックアップ（JSONダウンロード） =====
-function downloadBackup() {
-    if (!currentUserId) return;
-    const backupData = {
-        version: 2.0,
-        exportedAt: new Date().toISOString(),
-        userId: currentUserId,
-        data: {
-            marks, markDefinitions, mainMarkId, subMarkIds, theme: currentTheme, dayMemos
-        }
-    };
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `calendar_backup_${currentUserId}_${dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast("バックアップファイルをダウンロードしました");
-}
-// バックアップから復元
-function triggerRestore() {
-    if (!currentUserId) {
-        showLoginRequiredHint();
+    const t = tag.trim();
+    if (!t) {
+        resultsContainer.innerHTML = '<p class="hint">タグを入力してください。</p>';
         return;
     }
 
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/json";
-
-    input.addEventListener("change", (event) => {
-        const file = event.target.files && event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const json = JSON.parse(e.target.result);
-                if (!json || !json.data) {
-                    alert("このファイルはバックアップ形式ではありません。");
-                    return;
-                }
-
-                // 他ユーザーのバックアップなら確認
-                if (json.userId && json.userId !== currentUserId) {
-                    const ok = confirm(
-                        `バックアップのユーザーIDは「${json.userId}」です。\n` +
-                        `現在ログイン中の「${currentUserId}」に上書きしてよろしいですか？`
-                    );
-                    if (!ok) return;
-                }
-
-                const data = json.data;
-
-                marks = data.marks || {};
-                markDefinitions = data.markDefinitions || getDefaultMarkSetup().defs;
-                mainMarkId = data.mainMarkId || getDefaultMarkSetup().mainId;
-                subMarkIds = data.subMarkIds || getDefaultMarkSetup().subs;
-                currentTheme = data.theme || "light";
-                dayMemos = data.dayMemos || {};
-
-                migrateLegacyMarks();
-                applyTheme();
-                saveUserStateToCloud();
-                loadRecentSubMarks();
-                refreshCalendarView();
-
-                showToast("バックアップから復元しました");
-            } catch (err) {
-                console.error(err);
-                alert("バックアップの読み込みに失敗しました。ファイルを確認してください。");
-            }
-        };
-        reader.readAsText(file);
+    const hits = [];
+    Object.entries(dayMemos).forEach(([key, text]) => {
+        const tags = getTagsForDate(key);
+        if (tags.includes(t)) {
+            hits.push({ key, text });
+        }
     });
 
-    input.click();
+    if (!hits.length) {
+        resultsContainer.innerHTML = `<p class="hint">「${t}」のタグが付いたメモはありません。</p>`;
+        return;
+    }
+
+    hits.sort((a, b) => b.key.localeCompare(a.key));
+
+    hits.forEach(hit => {
+        const div = document.createElement("div");
+        div.className = "search-result-item";
+
+        const dateDiv = document.createElement("div");
+        dateDiv.className = "result-date";
+        dateDiv.textContent = hit.key;
+        div.appendChild(dateDiv);
+
+        const snippetDiv = document.createElement("div");
+        snippetDiv.className = "result-snippet";
+        snippetDiv.textContent = hit.text;
+        div.appendChild(snippetDiv);
+
+        const tagsDiv = document.createElement("div");
+        tagsDiv.className = "result-tags";
+        tagsDiv.textContent = getTagsForDate(hit.key).map(s => `#${s}`).join(" ");
+        div.appendChild(tagsDiv);
+
+        div.addEventListener("click", () => {
+            const [y, m, d] = hit.key.split("-").map(Number);
+            currentYear = y; currentMonth = m - 1;
+            renderCalendar();
+            setSelectedDate(hit.key);
+            closeAllSubViews();
+        });
+
+        resultsContainer.appendChild(div);
+    });
 }
 
-document.getElementById("settingsMenu").addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-action]"); if (!btn) return;
-    const action = btn.dataset.action;
-    switch(action) {
-        case "openSearch": showView("searchView"); break;
-        case "openHeatmap": renderHeatmap(); showView("heatmapView"); break;
-        case "downloadBackup": downloadBackup(); break;
-        case "triggerRestore": triggerRestore(); break;
-        case "openMarks": renderMarkSettingsUI(); showView("markSettingsView"); break;
-        case "openChange": showView("changeView"); break;
-        case "openDelete": showView("deleteView"); break;
-        case "logout": if(confirm("ログアウトしますか？")) logoutUser(); break;
+// メモがある日を全部一覧
+function listAllMemoDays() {
+    const resultsContainer = document.getElementById("searchResults");
+    resultsContainer.innerHTML = "";
+
+    const keys = Object.keys(dayMemos);
+    if (!keys.length) {
+        resultsContainer.innerHTML = '<p class="hint">まだメモがある日はありません。</p>';
+        return;
     }
+
+    keys.sort().reverse();
+
+    keys.forEach(key => {
+        const text = dayMemos[key] || "";
+        const div = document.createElement("div");
+        div.className = "search-result-item";
+
+        const dateDiv = document.createElement("div");
+        dateDiv.className = "result-date";
+        dateDiv.textContent = key;
+        div.appendChild(dateDiv);
+
+        const snippetDiv = document.createElement("div");
+        snippetDiv.className = "result-snippet";
+        snippetDiv.textContent = text;
+        div.appendChild(snippetDiv);
+
+        const tags = getTagsForDate(key);
+        if (tags.length) {
+            const tagsDiv = document.createElement("div");
+            tagsDiv.className = "result-tags";
+            tagsDiv.textContent = tags.map(s => `#${s}`).join(" ");
+            div.appendChild(tagsDiv);
+        }
+
+        div.addEventListener("click", () => {
+            const [y, m, d] = key.split("-").map(Number);
+            currentYear = y; currentMonth = m - 1;
+            renderCalendar();
+            setSelectedDate(key);
+            closeAllSubViews();
+        });
+
+        resultsContainer.appendChild(div);
+    });
+}
+
+// タグ候補（全日から集計）
+function renderTagSuggestions() {
+    const list = document.getElementById("tagSuggestionList");
+    if (!list) return;
+
+    list.innerHTML = "";
+    const set = new Set();
+
+    Object.keys(dayMemoTags).forEach(key => {
+        getTagsForDate(key).forEach(t => set.add(t));
+    });
+
+    const allTags = Array.from(set).sort((a, b) => a.localeCompare(b, "ja"));
+
+    if (!allTags.length) {
+        list.innerHTML = '<span class="hint" style="font-size:0.75rem;">まだタグはありません。メモを保存すると使えるようになります。</span>';
+        return;
+    }
+
+    allTags.forEach(tag => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "tag-chip";
+        chip.textContent = "#" + tag;
+        chip.addEventListener("click", () => {
+            const tagInput = document.getElementById("tagSearchInput");
+            if (tagInput) tagInput.value = tag;
+            searchMemosByTag(tag);
+        });
+        list.appendChild(chip);
+    });
+}
+
+
+// ===== データバックアップ（JSONダウンロード） =====
+function downloadBackup() {
+  if (!currentUserId) return;
+  const backupData = {
+    version: 2.1,
+    exportedAt: new Date().toISOString(),
+    userId: currentUserId,
+    data: {
+      marks,
+      markDefinitions,
+      mainMarkId,
+      subMarkIds,
+      theme: currentTheme,
+      dayMemos,
+      dayMemoTags,
+      monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0
+    }
+  };
+  const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `calendar_backup_${currentUserId}_${dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("バックアップファイルをダウンロードしました");
+}
+
+// バックアップから復元
+function triggerRestore() {
+  if (!currentUserId) {
+    showLoginRequiredHint();
+    return;
+  }
+
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+
+  input.addEventListener("change", (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        if (!json || !json.data) {
+          alert("このファイルはバックアップ形式ではありません。");
+          return;
+        }
+
+        if (json.userId && json.userId !== currentUserId) {
+          const ok = confirm(
+            `バックアップのユーザーIDは「${json.userId}」です。\n` +
+            `現在ログイン中の「${currentUserId}」に上書きしてよろしいですか？`
+          );
+          if (!ok) return;
+        }
+
+        const data = json.data;
+
+        marks = data.marks || {};
+        markDefinitions = data.markDefinitions || getDefaultMarkSetup().defs;
+        mainMarkId = data.mainMarkId || getDefaultMarkSetup().mainId;
+        subMarkIds = data.subMarkIds || getDefaultMarkSetup().subs;
+        currentTheme = data.theme || "light";
+        dayMemos = data.dayMemos || {};
+        dayMemoTags = data.dayMemoTags || {};
+        monthlyMainGoal = typeof data.monthlyMainGoal === "number" ? data.monthlyMainGoal : 0;
+
+        migrateLegacyMarks();
+        applyTheme();
+        saveUserStateToCloud();
+        loadRecentSubMarks();
+        refreshCalendarView();
+
+        showToast("バックアップから復元しました");
+      } catch (err) {
+        console.error(err);
+        alert("バックアップの読み込みに失敗しました。ファイルを確認してください。");
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  input.click();
+}
+
+// ===== マーク付きの日一覧 =====
+function renderMarkedList() {
+  const container = document.getElementById("markedListContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (!currentUserId) {
+    container.innerHTML = '<p class="hint">ログインすると一覧が表示されます。</p>';
+    return;
+  }
+
+  const list = [];
+  Object.entries(marks).forEach(([key, markId]) => {
+    const [y, m, d] = key.split("-").map(Number);
+    if (y === currentYear && m === currentMonth + 1) {
+      list.push({ key, markId, memo: dayMemos[key] || "" });
+    }
+  });
+
+  if (!list.length) {
+    container.innerHTML = '<p class="hint">この月にはマークがついている日がありません。</p>';
+    return;
+  }
+
+  list.sort((a, b) => a.key.localeCompare(b.key));
+
+  list.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "search-result-item";
+    const [y, m, d] = item.key.split("-").map(Number);
+    const dw = getDayName(y, m, d);
+    const def = markDefinitions[item.markId] || { icon: "", color: "#111827", label: "" };
+    const labelText = def.label ? def.label : "";
+    const memoText = item.memo ? item.memo.replace(/\s+/g, " ").slice(0, 40) : "";
+
+    div.innerHTML = `
+      <div class="result-date">${y}年${m}月${d}日(${dw})</div>
+      <div class="result-snippet">
+        <span style="color:${def.color}; margin-right:4px;">${def.icon}</span>
+        ${labelText ? labelText + "　" : ""}${memoText}
+      </div>
+    `;
+    div.addEventListener("click", () => {
+      currentYear = y; currentMonth = m - 1;
+      renderCalendar();
+      setSelectedDate(item.key);
+      closeAllSubViews();
+    });
+    container.appendChild(div);
+  });
+}
+
+// ===== 最近のメモタイムライン =====
+function renderTimeline() {
+  const container = document.getElementById("timelineList");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (!currentUserId) {
+    container.innerHTML = '<p class="hint">ログインするとタイムラインが表示されます。</p>';
+    return;
+  }
+
+  const list = Object.entries(dayMemos).map(([key, text]) => ({ key, text }));
+  if (!list.length) {
+    container.innerHTML = '<p class="hint">まだメモが登録されていません。</p>';
+    return;
+  }
+
+  list.sort((a, b) => b.key.localeCompare(a.key));
+  const top = list.slice(0, 7);
+
+  top.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "search-result-item";
+    const [y, m, d] = item.key.split("-").map(Number);
+    const dw = getDayName(y, m, d);
+    const text = item.text.replace(/\s+/g, " ");
+    div.innerHTML = `
+      <div class="result-date">${y}年${m}月${d}日(${dw})</div>
+      <div class="result-snippet">${text}</div>
+    `;
+    div.addEventListener("click", () => {
+      currentYear = y; currentMonth = m - 1;
+      renderCalendar();
+      setSelectedDate(item.key);
+      closeAllSubViews();
+    });
+    container.appendChild(div);
+  });
+}
+
+// ===== 設定メニューのクリック処理 =====
+document.getElementById("settingsMenu").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]"); if (!btn) return;
+  const action = btn.dataset.action;
+  switch(action) {
+    case "openSearch":
+    renderTagSuggestions();
+    showView("searchView");
+    break;
+    case "openHeatmap": renderHeatmap(); showView("heatmapView"); break;
+    case "downloadBackup": downloadBackup(); break;
+    case "triggerRestore": triggerRestore(); break;
+    case "openMarks": renderMarkSettingsUI(); showView("markSettingsView"); break;
+    case "openChange": showView("changeView"); break;
+    case "openDelete": showView("deleteView"); break;
+    case "openMarkedList": renderMarkedList(); showView("markedListView"); break;
+    case "openTimeline": renderTimeline(); showView("timelineView"); break;
+    case "logout": if (confirm("ログアウトしますか？")) logoutUser(); break;
+  }
 });
 
-document.querySelectorAll(".close-subview-btn").forEach(btn => { btn.addEventListener("click", closeAllSubViews); });
+document.querySelectorAll(".close-subview-btn").forEach(btn => {
+  btn.addEventListener("click", closeAllSubViews);
+});
 
-/* 🔽🔽 ここを追加 🔽🔽 */
 document.getElementById("changeSaveBtn").addEventListener("click", handleChangeSave);
 document.getElementById("deleteExecuteBtn").addEventListener("click", handleDeleteExecute);
-/* 🔼🔼 ここを追加 🔼🔼 */
 
 document.getElementById("searchExecuteBtn").addEventListener("click", () => { 
-    const keyword = document.getElementById("searchInput").value.trim(); 
-    searchMemos(keyword); 
+  const keyword = document.getElementById("searchInput").value.trim(); 
+  searchMemos(keyword); 
 });
 document.getElementById("searchInput").addEventListener("keypress", (e) => { 
-    if (e.key === "Enter") document.getElementById("searchExecuteBtn").click(); 
+  if (e.key === "Enter") document.getElementById("searchExecuteBtn").click(); 
 });
+const tagSearchBtn = document.getElementById("tagSearchBtn");
+if (tagSearchBtn) {
+    tagSearchBtn.addEventListener("click", () => {
+        const tag = document.getElementById("tagSearchInput").value.trim();
+        searchMemosByTag(tag);
+    });
+}
 
+const tagSearchInput = document.getElementById("tagSearchInput");
+if (tagSearchInput) {
+    tagSearchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") document.getElementById("tagSearchBtn").click();
+    });
+}
 
+const listAllMemoDaysBtn = document.getElementById("listAllMemoDaysBtn");
+if (listAllMemoDaysBtn) {
+    listAllMemoDaysBtn.addEventListener("click", listAllMemoDays);
+}
 
-// ===== 既存のUIイベント設定（ログイン切り替え、モード切り替えなど） =====
+// ===== 既存のUIイベント設定 =====
 document.getElementById("loginToggleBtn").addEventListener("click", () => {
-    const form = document.getElementById("loginFormBody");
-    const isHidden = form.style.display === "none";
-    form.style.display = isHidden ? "block" : "none";
-    document.getElementById("loginToggleBtn").textContent = isHidden ? "▲" : "▼";
+  const form = document.getElementById("loginFormBody");
+  const isHidden = form.style.display === "none";
+  form.style.display = isHidden ? "block" : "none";
+  document.getElementById("loginToggleBtn").textContent = isHidden ? "▲" : "▼";
 });
 document.getElementById("registerBtn").addEventListener("click", registerUserBtnClicked);
 document.getElementById("loginBtn").addEventListener("click", loginUserBtnClicked);
@@ -3152,15 +3687,15 @@ document.getElementById("modeMarkBtn").addEventListener("click", () => { current
 document.getElementById("modeMemoBtn").addEventListener("click", () => { currentMode = "memo"; updateModeUI(); showToast("メモモード"); });
 
 document.getElementById("settingsBtn").addEventListener("click", (e) => {
-    if (!currentUserId) { showLoginRequiredHint(); return; }
-    const menu = document.getElementById("settingsMenu");
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
-    e.stopPropagation();
+  if (!currentUserId) { showLoginRequiredHint(); return; }
+  const menu = document.getElementById("settingsMenu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+  e.stopPropagation();
 });
 document.addEventListener("click", (e) => {
-    if (!e.target.closest("#settingsMenu") && !e.target.closest("#settingsBtn")) {
-        document.getElementById("settingsMenu").style.display = "none";
-    }
+  if (!e.target.closest("#settingsMenu") && !e.target.closest("#settingsBtn")) {
+    document.getElementById("settingsMenu").style.display = "none";
+  }
 });
 
 // 年月ピッカー
@@ -3168,98 +3703,112 @@ document.getElementById("monthLabel").addEventListener("click", () => document.g
 document.getElementById("monthPickerOverlay").addEventListener("click", (e) => { if(e.target === e.currentTarget) e.target.style.display = "none"; });
 document.getElementById("monthPickerCancel").addEventListener("click", () => document.getElementById("monthPickerOverlay").style.display = "none");
 document.getElementById("monthPickerOK").addEventListener("click", () => {
-    currentYear = parseInt(document.getElementById("yearSelect").value);
-    currentMonth = parseInt(document.getElementById("monthSelect").value) - 1;
-    renderCalendar();
-    document.getElementById("monthPickerOverlay").style.display = "none";
+  currentYear = parseInt(document.getElementById("yearSelect").value);
+  currentMonth = parseInt(document.getElementById("monthSelect").value) - 1;
+  renderCalendar();
+  document.getElementById("monthPickerOverlay").style.display = "none";
 });
 
-
-// ===== マーク設定画面のUIレンダリング（既存ロジックを移植） =====
+// ===== マーク設定画面のUIレンダリング =====
 function renderMarkSettingsUI() {
-    // テーマ選択
-    document.getElementById("themeSelect").value = currentTheme;
-    
-    const allIds = Object.keys(markDefinitions);
-    // メインセレクト
-    const mainSel = document.getElementById("mainMarkSelect");
-    mainSel.innerHTML = '<option value="">選択してください</option>';
-    allIds.forEach(id => mainSel.appendChild(createOption(id)));
-    mainSel.value = mainMarkId || "";
+  document.getElementById("themeSelect").value = currentTheme;
+  const goalInput = document.getElementById("monthlyGoalInput");
+  goalInput.value = monthlyMainGoal > 0 ? monthlyMainGoal : "";
 
-    // サブセレクト(6つに削減)
-    for(let i=1; i<=6; i++) {
-        const subSel = document.getElementById(`subMarkSelect${i}`);
-        subSel.innerHTML = '<option value="">未設定</option>';
-        allIds.forEach(id => subSel.appendChild(createOption(id)));
-        subSel.value = subMarkIds[i] || "";
-    }
+  const allIds = Object.keys(markDefinitions);
+  const mainSel = document.getElementById("mainMarkSelect");
+  mainSel.innerHTML = '<option value="">選択してください</option>';
+  allIds.forEach(id => mainSel.appendChild(createOption(id)));
+  mainSel.value = mainMarkId || "";
 
-    // 一覧
-    const list = document.getElementById("unusedMarksList");
-    list.innerHTML = "";
-    allIds.forEach(id => {
-        const def = markDefinitions[id];
-        const label = document.createElement("label"); label.className = "unused-mark-item";
-        label.innerHTML = `<input type="checkbox" data-id="${id}"> <span class="unused-mark-icon" style="color:${def.color}">${def.icon}</span>`;
-        list.appendChild(label);
-    });
-    updateSelectColors();
-}
-function createOption(id) {
+  for(let i=1; i<=6; i++) {
+    const subSel = document.getElementById(`subMarkSelect${i}`);
+    subSel.innerHTML = '<option value="">未設定</option>';
+    allIds.forEach(id => subSel.appendChild(createOption(id)));
+    subSel.value = subMarkIds[i] || "";
+  }
+
+  const list = document.getElementById("unusedMarksList");
+  list.innerHTML = "";
+  allIds.forEach(id => {
     const def = markDefinitions[id];
-    const opt = document.createElement("option");
-    opt.value = id; opt.textContent = def.icon; opt.style.color = def.color;
-    return opt;
+    const label = document.createElement("label"); label.className = "unused-mark-item";
+    const labelText = def.label ? ` (${def.label})` : "";
+    label.innerHTML = `
+      <input type="checkbox" data-id="${id}">
+      <span class="unused-mark-icon" style="color:${def.color}">${def.icon}</span>
+      <span>${labelText}</span>
+    `;
+    list.appendChild(label);
+  });
+  updateSelectColors();
 }
+
+function createOption(id) {
+  const def = markDefinitions[id];
+  const opt = document.createElement("option");
+  opt.value = id;
+  const labelText = def.label ? ` ${def.label}` : "";
+  opt.textContent = def.icon + labelText;
+  opt.style.color = def.color;
+  return opt;
+}
+
 function updateSelectColors() {
-    document.querySelectorAll(".mark-settings-grid select").forEach(sel => {
-        const def = markDefinitions[sel.value];
-        sel.style.color = def ? def.color : "inherit";
-    });
+  document.querySelectorAll(".mark-settings-grid select").forEach(sel => {
+    const def = markDefinitions[sel.value];
+    sel.style.color = def ? def.color : "inherit";
+  });
 }
 document.querySelector(".mark-settings-grid").addEventListener("change", updateSelectColors);
 
 // マーク追加
 document.getElementById("addMarkBtn").addEventListener("click", () => {
-    const icon = document.getElementById("newMarkIconInput").value.trim();
-    const color = document.getElementById("newMarkColorInput").value;
-    if (!icon) return alert("記号を入力してください");
-    const id = "m_" + Date.now().toString(36);
-    markDefinitions[id] = { icon, color };
-    document.getElementById("newMarkIconInput").value = "";
-    renderMarkSettingsUI();
+  const icon = document.getElementById("newMarkIconInput").value.trim();
+  const color = document.getElementById("newMarkColorInput").value;
+  const label = document.getElementById("newMarkLabelInput").value.trim();
+  if (!icon) return alert("記号を入力してください");
+  const id = "m_" + Date.now().toString(36);
+  markDefinitions[id] = { icon, color, label };
+  document.getElementById("newMarkIconInput").value = "";
+  document.getElementById("newMarkLabelInput").value = "";
+  renderMarkSettingsUI();
 });
+
 // マーク設定保存
 document.getElementById("markSaveBtn").addEventListener("click", () => {
-    mainMarkId = document.getElementById("mainMarkSelect").value || null;
-    subMarkIds = {};
-    for(let i=1; i<=6; i++) subMarkIds[i] = document.getElementById(`subMarkSelect${i}`).value || null;
-    currentTheme = document.getElementById("themeSelect").value;
-    
-    saveUserStateToCloud();
-    applyTheme();
-    closeAllSubViews();
-    refreshCalendarView();
-    showToast("設定を保存しました");
+  mainMarkId = document.getElementById("mainMarkSelect").value || null;
+  subMarkIds = {};
+  for(let i=1; i<=6; i++) subMarkIds[i] = document.getElementById(`subMarkSelect${i}`).value || null;
+  currentTheme = document.getElementById("themeSelect").value;
+
+  const goalVal = parseInt(document.getElementById("monthlyGoalInput").value, 10);
+  monthlyMainGoal = Number.isFinite(goalVal) && goalVal > 0 ? goalVal : 0;
+  
+  saveUserStateToCloud();
+  applyTheme();
+  closeAllSubViews();
+  refreshCalendarView();
+  showToast("設定を保存しました");
 });
+
 // マーク削除
 document.getElementById("deleteMarksBtn").addEventListener("click", () => {
-    const checked = document.querySelectorAll('#unusedMarksList input:checked');
-    if (!checked.length) return alert("削除するマークを選択してください");
-    if (!confirm("選択したマークを削除しますか？\n（カレンダーからも消えます）")) return;
+  const checked = document.querySelectorAll('#unusedMarksList input:checked');
+  if (!checked.length) return alert("削除するマークを選択してください");
+  if (!confirm("選択したマークを削除しますか？\n（カレンダーからも消えます）")) return;
 
-    checked.forEach(chk => {
-        const id = chk.dataset.id;
-        delete markDefinitions[id];
-        if (mainMarkId === id) mainMarkId = null;
-        Object.keys(subMarkIds).forEach(k => { if(subMarkIds[k] === id) delete subMarkIds[k]; });
-        Object.keys(marks).forEach(k => { if(marks[k] === id) delete marks[k]; });
-    });
-    saveUserStateToCloud();
-    renderMarkSettingsUI();
+  checked.forEach(chk => {
+    const id = chk.dataset.id;
+    delete markDefinitions[id];
+    if (mainMarkId === id) mainMarkId = null;
+    Object.keys(subMarkIds).forEach(k => { if(subMarkIds[k] === id) delete subMarkIds[k]; });
+    Object.keys(marks).forEach(k => { if(marks[k] === id) delete marks[k]; });
+  });
+  saveUserStateToCloud();
+  renderMarkSettingsUI();
+  refreshCalendarView();
 });
-
 
 // ===== 初期化 =====
 function init() {
@@ -3267,10 +3816,9 @@ function init() {
   currentYear = now.getFullYear();
   currentMonth = now.getMonth();
   
-  // 年選択肢の生成
   const yearSel = document.getElementById("yearSelect");
   for (let y = currentYear - 5; y <= currentYear + 5; y++) {
-      yearSel.appendChild(new Option(`${y}年`, y));
+    yearSel.appendChild(new Option(`${y}年`, y));
   }
   yearSel.value = currentYear;
   document.getElementById("monthSelect").value = currentMonth + 1;
@@ -3282,8 +3830,8 @@ function init() {
   renderCalendar();
   ensureExtraUI();
   updateRokuyoHeader();
+  updateTodaySummary();
   
-  // 自動ログイン試行
   setTimeout(tryAutoLoginFromLocal, 500);
 }
 

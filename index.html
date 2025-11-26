@@ -5,7 +5,7 @@
   <title>カレンダーチェック（クラウド同期・改）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   
-  <linkpreconnect="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -1888,7 +1888,7 @@ body.theme-dark #toast {
       </div>
 
       <div class="panel-buttons" style="margin-top: 16px;">
-        <button id="markSaveBtn" type="button" class="primary">設定を保存して戻る</button>
+        <button id="markSaveBtn" type="button" class="primary">戻る</button>
       </div>
     </section>
   </div>
@@ -2038,13 +2038,69 @@ function getDefaultMarkSetup() {
 }
 
 // ===== 画面切り替え =====
+// ===== マーク設定の自動保存（マーク設定画面を閉じる前に呼び出す） =====
+function autoSaveMarkSettingsIfNeeded(showToastMessage = true) {
+  const view = document.getElementById("markSettingsView");
+  // マーク設定画面がそもそも表示されていなければ何もしない
+  if (!view || view.style.display !== "block") return;
+
+  const themeSel = document.getElementById("themeSelect");
+  const mainSel = document.getElementById("mainMarkSelect");
+  if (!themeSel || !mainSel) return;
+
+  const prevMain = mainMarkId;
+  const prevSubs = { ...subMarkIds };
+  const prevTheme = currentTheme;
+  const prevGoal = monthlyMainGoal;
+
+  const newMain = mainSel.value || null;
+  const newSubs = {};
+  for (let i = 1; i <= 6; i++) {
+    const sel = document.getElementById(`subMarkSelect${i}`);
+    newSubs[i] = sel ? (sel.value || null) : null;
+  }
+  const newTheme = themeSel.value;
+  const goalVal = parseInt(document.getElementById("monthlyGoalInput").value, 10);
+  const newGoal = Number.isFinite(goalVal) && goalVal > 0 ? goalVal : 0;
+
+  let changed = (prevMain !== newMain) || (prevTheme !== newTheme) || (prevGoal !== newGoal);
+  if (!changed) {
+    for (let i = 1; i <= 6; i++) {
+      if ((prevSubs[i] || null) !== (newSubs[i] || null)) {
+        changed = true;
+        break;
+      }
+    }
+  }
+  // 何も変わってなければ保存しない
+  if (!changed) return;
+
+  // 変更を反映
+  mainMarkId = newMain;
+  subMarkIds = newSubs;
+  currentTheme = newTheme;
+  monthlyMainGoal = newGoal;
+
+  saveUserStateToCloud();
+  applyTheme();
+  refreshCalendarView();
+  if (showToastMessage) showToast("設定を保存しました");
+}
+
+// ===== 画面切り替え =====
 function closeAllSubViews() {
+  // ★ どこへ戻る場合でも、マーク設定画面が開いていたら先に自動保存
+  autoSaveMarkSettingsIfNeeded(true);
+
   document.querySelectorAll('.subview').forEach(el => el.style.display = 'none');
   document.getElementById("mainView").style.display = "block";
   document.getElementById("settingsMenu").style.display = "none";
 }
 
 function showView(viewId) {
+  // ★ 他のサブビューへ移動する前にも、マーク設定画面が開いていれば自動保存
+  autoSaveMarkSettingsIfNeeded(true);
+
   document.querySelectorAll('.subview').forEach(el => el.style.display = 'none');
   document.getElementById("mainView").style.display = "none";
   document.getElementById("settingsMenu").style.display = "none";
@@ -3767,30 +3823,40 @@ document.getElementById("addMarkBtn").addEventListener("click", () => {
   const icon = document.getElementById("newMarkIconInput").value.trim();
   const color = document.getElementById("newMarkColorInput").value;
   const label = document.getElementById("newMarkLabelInput").value.trim();
-  if (!icon) return alert("記号を入力してください");
+
+  if (!icon) {
+    alert("記号を入力してください");
+    return;
+  }
+
+  // ★ 同じ「記号」のマークが既にあれば追加しない
+  const duplicated = Object.values(markDefinitions).some(def => def.icon === icon);
+  if (duplicated) {
+    alert("同じ記号のマークがすでに登録されています");
+    return;
+  }
+
   const id = "m_" + Date.now().toString(36);
   markDefinitions[id] = { icon, color, label };
+
+  // 入力欄リセット
   document.getElementById("newMarkIconInput").value = "";
   document.getElementById("newMarkLabelInput").value = "";
+
+  // セレクトボックスなどを更新
   renderMarkSettingsUI();
-});
 
-// マーク設定保存
-document.getElementById("markSaveBtn").addEventListener("click", () => {
-  mainMarkId = document.getElementById("mainMarkSelect").value || null;
-  subMarkIds = {};
-  for(let i=1; i<=6; i++) subMarkIds[i] = document.getElementById(`subMarkSelect${i}`).value || null;
-  currentTheme = document.getElementById("themeSelect").value;
-
-  const goalVal = parseInt(document.getElementById("monthlyGoalInput").value, 10);
-  monthlyMainGoal = Number.isFinite(goalVal) && goalVal > 0 ? goalVal : 0;
-  
+  // ★ 追加した時点でクラウドにも保存しておく
   saveUserStateToCloud();
-  applyTheme();
-  closeAllSubViews();
-  refreshCalendarView();
-  showToast("設定を保存しました");
 });
+
+
+// マーク設定の「戻る」ボタン
+document.getElementById("markSaveBtn").addEventListener("click", () => {
+  // ★ 実際の保存処理は closeAllSubViews → autoSaveMarkSettingsIfNeeded に任せる
+  closeAllSubViews();
+});
+
 
 // マーク削除
 document.getElementById("deleteMarksBtn").addEventListener("click", () => {

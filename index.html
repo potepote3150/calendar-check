@@ -1330,6 +1330,7 @@ body.theme-dark .mark-menu button:hover {
   height: 100%;
   border-radius: inherit;
   background: #60a5fa;
+  background: var(--accent);
   transition: width 0.3s ease-out;
 }
 
@@ -1415,6 +1416,7 @@ body.theme-dark .monthly-goal-bar {
   height: 100%;
   border-radius: inherit;
   background: #60a5fa;
+  background: var(--accent);
   transition: width 0.3s ease-out;
 }
 
@@ -1731,13 +1733,22 @@ body.theme-dark #toast {
     </div>
 </section>
 
-
     <section id="markedListView" class="subview">
       <h2>
         <span>今月のマーク付きの日一覧</span>
         <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
       </h2>
       <p class="hint">現在表示中の月のうち、マークがついている日を一覧で表示します。</p>
+
+      <div class="form-group">
+        <label>
+          表示するマーク
+          <select id="markedFilterSelect">
+            <!-- JSで中身を埋めます -->
+          </select>
+        </label>
+      </div>
+
       <div id="markedListContainer" class="search-results-list">
         <p class="hint">マークがついている日がここに表示されます。</p>
       </div>
@@ -1823,6 +1834,17 @@ body.theme-dark #toast {
       </h2>
 
       <div class="form-group">
+            <div class="form-group">
+        <label>
+          アクセントカラー
+          <input id="accentColorInput" type="color" />
+        </label>
+        <p class="hint">ボタンやハイライトに使われる色です。</p>
+        <button id="accentResetBtn" type="button" style="margin-top:4px; font-size:0.8rem;">
+          デフォルトに戻す
+        </button>
+      </div>
+
         <label>
           テーマ
           <select id="themeSelect">
@@ -1971,6 +1993,7 @@ let recentSubMarks = [];
 
 let touchStartX = 0;
 let touchStartY = 0;
+let accentColor = "#2563eb"; // アクセントカラー（ボタン・ハイライト用）
 
 // ===== トースト通知 =====
 let toastTimer = null;
@@ -2022,6 +2045,28 @@ function applyTheme() {
   bodyEl.classList.add(cls);
   updateThemeBadge();
 }
+// ★ ここから追加
+function applyAccentColor() {
+  const root = document.documentElement;
+  if (!root) return;
+  const base = accentColor || "#2563eb";
+  root.style.setProperty("--accent", base);
+  root.style.setProperty("--accent-soft", makeSoftColor(base));
+}
+
+function makeSoftColor(hex) {
+  if (!/^#?[0-9a-fA-F]{6}$/.test(hex)) return "#dbeafe";
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  const ratio = 0.75; // 白寄りに寄せる
+  const nr = Math.round(r + (255 - r) * ratio);
+  const ng = Math.round(g + (255 - g) * ratio);
+  const nb = Math.round(b + (255 - b) * ratio);
+  return "#" + [nr, ng, nb].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+// ★ ここまで追加
 
 // ===== デフォルトマーク定義 =====
 function getDefaultMarkSetup() {
@@ -2194,11 +2239,13 @@ function executeLogin(userId, pin, data) {
   dayMemos = data.dayMemos || {};
   currentTheme = data.theme || "light";
   monthlyMainGoal = typeof data.monthlyMainGoal === "number" ? data.monthlyMainGoal : 0;
-dayMemoTags = data.dayMemoTags || {};
+  dayMemoTags = data.dayMemoTags || {};
+  accentColor = data.accentColor || "#2563eb";
 
   migrateLegacyMarks();
 
   applyTheme();
+  applyAccentColor();
   saveSessionToLocal();
   loadRecentSubMarks();
   
@@ -2219,16 +2266,26 @@ function migrateLegacyMarks() {
   const base = getDefaultMarkSetup();
   const defaultDefs = base.defs;
 
-  // デフォルト定義がなければ補完
-  Object.keys(defaultDefs).forEach(key => {
-    if (!markDefinitions[key]) {
-      markDefinitions[key] = defaultDefs[key];
-      needsSave = true;
-    }
-  });
+  // ① markDefinitions が変な値なら空オブジェクトにしておく
+  if (!markDefinitions || typeof markDefinitions !== "object") {
+    markDefinitions = {};
+  }
 
-  // ラベルがないマークに簡易ラベルを付与
-  Object.keys(markDefinitions).forEach(id => {
+  // ② まったく何も定義がないときだけ「デフォルト一式」を入れる
+  //    → ユーザーが消したデフォルトマークは復活させない
+  if (Object.keys(markDefinitions).length === 0) {
+    Object.keys(defaultDefs).forEach((id) => {
+      markDefinitions[id] = {
+        icon: defaultDefs[id].icon,
+        color: defaultDefs[id].color,
+        label: defaultDefs[id].label || ""
+      };
+    });
+    needsSave = true;
+  }
+
+  // ③ ラベルがないマークにはラベルを補完する
+  Object.keys(markDefinitions).forEach((id) => {
     const def = markDefinitions[id];
     if (!def.label) {
       if (defaultDefs[id] && defaultDefs[id].label) {
@@ -2240,20 +2297,30 @@ function migrateLegacyMarks() {
     }
   });
 
+  // ④ 古いID（check / circle / double）を新IDに変換しつつ、
+  //    定義が存在しないマークIDはきれいに捨てる
   const newMarks = {};
-  Object.keys(marks).forEach(key => {
+  Object.keys(marks).forEach((key) => {
     const val = marks[key];
     if (markDefinitions[val]) {
+      // 現在有効なID
       newMarks[key] = val;
     } else if (legacyMap[val] && markDefinitions[legacyMap[val]]) {
+      // 旧ID → 新ID へ変換
       newMarks[key] = legacyMap[val];
       needsSave = true;
     }
+    // それ以外（もう定義がないID）は捨てる → カレンダー上からも消える
   });
   marks = newMarks;
-  
-  if (needsSave) saveUserStateToCloud();
+
+  if (needsSave) {
+    saveUserStateToCloud();
+  }
 }
+
+
+
 
 // ===== 保存（追加も削除も確実に反映） =====
 function saveUserStateToCloud() {
@@ -2267,21 +2334,22 @@ function saveUserStateToCloud() {
   const memosToSave = { ...dayMemos };
   const memoTagsToSave = { ...dayMemoTags };
 
-  docRef
-    .set({
-      pin: currentPin,
-      marks: marksToSave,
-      markDefinitions: defsToSave,
-      mainMarkId: mainMarkId || null,
-      subMarkIds: subsToSave,
-      theme: currentTheme,
-      dayMemos: memosToSave,
-      dayMemoTags: memoTagsToSave,
-      monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0
-    })
-    .catch((e) => {
-      console.error("Save error", e);
-    });
+docRef
+  .set({
+    pin: currentPin,
+    marks: marksToSave,
+    markDefinitions: defsToSave,
+    mainMarkId: mainMarkId || null,
+    subMarkIds: subsToSave,
+    theme: currentTheme,
+    dayMemos: memosToSave,
+    dayMemoTags: memoTagsToSave,
+    monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0,
+    accentColor: accentColor
+  })
+  .catch((e) => {
+    console.error("Save error", e);
+  });
 }
 
 
@@ -2305,7 +2373,9 @@ async function registerUserBtnClicked() {
       subMarkIds: base.subs,
       theme: "light",
       dayMemos: {},
-      monthlyMainGoal: 0
+      monthlyMainGoal: 0,
+      dayMemoTags: {},
+      accentColor: "#2563eb"
     };
     await docRef.set(newData);
     executeLogin(userId, pin, newData);
@@ -2335,13 +2405,16 @@ function logoutUser() {
   loginHintShown = false; selectedDateKey = null; recentSubMarks = [];
   clearSessionFromLocal();
   currentTheme = "light"; currentMode = "mark";
+  accentColor = "#2563eb";
   applyTheme();
+  applyAccentColor();
   updateModeUI();
   updateLoginStatusUI();
   closeAllSubViews();
   refreshCalendarView();
   showToast("ログアウトしました");
 }
+
 
 // アカウント情報の変更
 async function handleChangeSave() {
@@ -2399,7 +2472,8 @@ async function handleChangeSave() {
         theme: currentTheme,
         dayMemos,
         dayMemoTags,
-        monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0
+        monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0,
+        accentColor: accentColor
       };
 
       await newDocRef.set(newData);
@@ -3506,7 +3580,8 @@ function downloadBackup() {
       theme: currentTheme,
       dayMemos,
       dayMemoTags,
-      monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0
+      monthlyMainGoal: typeof monthlyMainGoal === "number" ? monthlyMainGoal : 0,
+      accentColor: accentColor
     }
   };
   const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
@@ -3555,20 +3630,22 @@ function triggerRestore() {
 
         const data = json.data;
 
-        marks = data.marks || {};
-        markDefinitions = data.markDefinitions || getDefaultMarkSetup().defs;
-        mainMarkId = data.mainMarkId || getDefaultMarkSetup().mainId;
-        subMarkIds = data.subMarkIds || getDefaultMarkSetup().subs;
-        currentTheme = data.theme || "light";
-        dayMemos = data.dayMemos || {};
-        dayMemoTags = data.dayMemoTags || {};
-        monthlyMainGoal = typeof data.monthlyMainGoal === "number" ? data.monthlyMainGoal : 0;
+marks = data.marks || {};
+markDefinitions = data.markDefinitions || getDefaultMarkSetup().defs;
+mainMarkId = data.mainMarkId || getDefaultMarkSetup().mainId;
+subMarkIds = data.subMarkIds || getDefaultMarkSetup().subs;
+currentTheme = data.theme || "light";
+dayMemos = data.dayMemos || {};
+dayMemoTags = data.dayMemoTags || {};
+monthlyMainGoal = typeof data.monthlyMainGoal === "number" ? data.monthlyMainGoal : 0;
+accentColor = data.accentColor || "#2563eb";
 
-        migrateLegacyMarks();
-        applyTheme();
-        saveUserStateToCloud();
-        loadRecentSubMarks();
-        refreshCalendarView();
+migrateLegacyMarks();
+applyTheme();
+applyAccentColor();
+saveUserStateToCloud();
+loadRecentSubMarks();
+refreshCalendarView();
 
         showToast("バックアップから復元しました");
       } catch (err) {
@@ -3585,24 +3662,71 @@ function triggerRestore() {
 // ===== マーク付きの日一覧 =====
 function renderMarkedList() {
   const container = document.getElementById("markedListContainer");
+  const filterSel = document.getElementById("markedFilterSelect");
   if (!container) return;
   container.innerHTML = "";
 
   if (!currentUserId) {
     container.innerHTML = '<p class="hint">ログインすると一覧が表示されます。</p>';
+    if (filterSel) filterSel.innerHTML = "";
     return;
+  }
+
+  // フィルターセレクトの中身を更新
+  if (filterSel) {
+    const prevVal = filterSel.value || "";
+    filterSel.innerHTML = "";
+
+    const optAll = document.createElement("option");
+    optAll.value = "";
+    optAll.textContent = "すべてのマーク";
+    filterSel.appendChild(optAll);
+
+    if (mainMarkId && markDefinitions[mainMarkId]) {
+      const optMain = document.createElement("option");
+      optMain.value = "__main";
+      const defMain = markDefinitions[mainMarkId];
+      optMain.textContent = `メイン: ${defMain.icon}${defMain.label ? " " + defMain.label : ""}`;
+      filterSel.appendChild(optMain);
+    }
+
+    Object.keys(markDefinitions).forEach(id => {
+      const def = markDefinitions[id];
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = `${def.icon}${def.label ? " " + def.label : ""}`;
+      filterSel.appendChild(opt);
+    });
+
+    const exists = Array.from(filterSel.options).some(o => o.value === prevVal);
+    filterSel.value = exists ? prevVal : "";
+  }
+
+  let filterValue = "";
+  if (filterSel) filterValue = filterSel.value || "";
+  let filterMarkId = null;
+  let onlyMain = false;
+
+  if (filterValue === "__main") {
+    onlyMain = true;
+    filterMarkId = mainMarkId || null;
+  } else if (filterValue) {
+    filterMarkId = filterValue;
   }
 
   const list = [];
   Object.entries(marks).forEach(([key, markId]) => {
     const [y, m, d] = key.split("-").map(Number);
-    if (y === currentYear && m === currentMonth + 1) {
-      list.push({ key, markId, memo: dayMemos[key] || "" });
-    }
+    if (y !== currentYear || m !== currentMonth + 1) return;
+
+    if (onlyMain && markId !== mainMarkId) return;
+    if (!onlyMain && filterMarkId && markId !== filterMarkId) return;
+
+    list.push({ key, markId, memo: dayMemos[key] || "" });
   });
 
   if (!list.length) {
-    container.innerHTML = '<p class="hint">この月にはマークがついている日がありません。</p>';
+    container.innerHTML = '<p class="hint">条件に合うマーク付きの日がありません。</p>';
     return;
   }
 
@@ -3728,6 +3852,10 @@ const listAllMemoDaysBtn = document.getElementById("listAllMemoDaysBtn");
 if (listAllMemoDaysBtn) {
     listAllMemoDaysBtn.addEventListener("click", listAllMemoDays);
 }
+const markedFilterSelect = document.getElementById("markedFilterSelect");
+if (markedFilterSelect) {
+  markedFilterSelect.addEventListener("change", renderMarkedList);
+}
 
 // ===== 既存のUIイベント設定 =====
 document.getElementById("loginToggleBtn").addEventListener("click", () => {
@@ -3770,6 +3898,9 @@ function renderMarkSettingsUI() {
   document.getElementById("themeSelect").value = currentTheme;
   const goalInput = document.getElementById("monthlyGoalInput");
   goalInput.value = monthlyMainGoal > 0 ? monthlyMainGoal : "";
+
+const accentInput = document.getElementById("accentColorInput");
+  if (accentInput) accentInput.value = accentColor || "#2563eb";
 
   const allIds = Object.keys(markDefinitions);
   const mainSel = document.getElementById("mainMarkSelect");
@@ -3817,6 +3948,24 @@ function updateSelectColors() {
   });
 }
 document.querySelector(".mark-settings-grid").addEventListener("change", updateSelectColors);
+const accentInput = document.getElementById("accentColorInput");
+const accentResetBtn = document.getElementById("accentResetBtn");
+if (accentInput) {
+  accentInput.addEventListener("input", () => {
+    accentColor = accentInput.value || "#2563eb";
+    applyAccentColor();
+    saveUserStateToCloud();
+  });
+}
+if (accentResetBtn) {
+  accentResetBtn.addEventListener("click", () => {
+    accentColor = "#2563eb";
+    if (accentInput) accentInput.value = accentColor;
+    applyAccentColor();
+    saveUserStateToCloud();
+    showToast("アクセントカラーをリセットしました");
+  });
+}
 
 // マーク追加
 document.getElementById("addMarkBtn").addEventListener("click", () => {
@@ -3829,10 +3978,12 @@ document.getElementById("addMarkBtn").addEventListener("click", () => {
     return;
   }
 
-  // ★ 同じ「記号」のマークが既にあれば追加しない
-  const duplicated = Object.values(markDefinitions).some(def => def.icon === icon);
+  // ★「記号＋色」が完全に同じマークだけ重複禁止（色違いはOK）
+  const duplicated = Object.values(markDefinitions).some(def => (
+    def.icon === icon && def.color === color
+  ));
   if (duplicated) {
-    alert("同じ記号のマークがすでに登録されています");
+    alert("同じ記号・色のマークがすでに登録されています");
     return;
   }
 
@@ -3846,9 +3997,11 @@ document.getElementById("addMarkBtn").addEventListener("click", () => {
   // セレクトボックスなどを更新
   renderMarkSettingsUI();
 
-  // ★ 追加した時点でクラウドにも保存しておく
+  // ★ 追加した時点でクラウドにも保存
   saveUserStateToCloud();
 });
+
+
 
 
 // マーク設定の「戻る」ボタン
@@ -3890,6 +4043,7 @@ function init() {
   document.getElementById("monthSelect").value = currentMonth + 1;
 
   applyTheme();
+  applyAccentColor();
   updateModeUI();
   updateLoginStatusUI();
   

@@ -1415,9 +1415,35 @@ body.theme-dark .monthly-goal-bar {
 .year-summary-bar {
   height: 100%;
   border-radius: inherit;
-  background: #60a5fa;
-  background: var(--accent);
-  transition: width 0.3s ease-out;
+  display: flex;
+  overflow: hidden;
+}
+.year-summary-bar-seg {
+  height: 100%;
+}
+
+.year-summary-mark-icons {
+  margin-left: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  font-size: 0.75rem;
+}
+
+.heatmap-mark-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+body.theme-dark .heatmap-mark-chip {
+  border-color: rgba(148, 163, 184, 0.8);
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .year-summary-count {
@@ -1425,6 +1451,32 @@ body.theme-dark .monthly-goal-bar {
   text-align: right;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+.heatmap-control-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.heatmap-control-row label {
+  margin-right: 2px;
+}
+
+.heatmap-control-row select {
+  padding: 4px 8px;
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  font-size: 0.85rem;
+  background: #ffffff;
+}
+
+body.theme-dark .heatmap-control-row select {
+  background: #020617;
+  border-color: #1e293b;
+  color: #e5e7eb;
 }
 
 /* 年間グラフの最多月強調 */
@@ -1725,7 +1777,7 @@ body.theme-dark #toast {
 
     <!-- メモがある日一覧ボタン -->
     <div class="form-group">
-        <button id="listAllMemoDaysBtn" type="button" style="width:100%;">📝 メモがある日をすべて表示</button>
+        <button id="listAllMemoDaysBtn" type="button" style="width:100%;">📝 メモまたはタグがある日をすべて表示</button>
     </div>
 
     <div id="searchResults" class="search-results-list">
@@ -1771,9 +1823,14 @@ body.theme-dark #toast {
     <button class="close-subview-btn" type="button" data-action="closeSubView">×</button>
   </h2>
   <p class="hint">
-    直近12か月分のマーク数を、月ごとの棒グラフで表示します。
+    選択した年のマーク数を、月ごとの棒グラフで表示します。
   </p>
   <div class="heatmap-container">
+    <div class="heatmap-control-row">
+      <label for="heatmapYearSelect">表示する年</label>
+      <select id="heatmapYearSelect"></select>
+    </div>
+
     <div id="heatmapGrid" class="year-summary-list">
       <p class="hint">データを読み込み中...</p>
     </div>
@@ -1994,6 +2051,15 @@ let recentSubMarks = [];
 let touchStartX = 0;
 let touchStartY = 0;
 let accentColor = "#2563eb"; // アクセントカラー（ボタン・ハイライト用）
+let currentHeatmapYear = null; // 年間グラフで表示中の年
+let markedListRange = "month"; // "month" = 今月のみ, "all" = 全期間 ★追加
+
+// ===== 検索用の共通状態 =====
+const SEARCH_PAGE_SIZE = 30;  // 1回で表示する件数
+let currentSearchHits = [];   // 検索結果の配列
+let currentSearchRendered = 0; // 何件まで描画済みか
+let lastSearchKeyword = "";   // ハイライト用の直近キーワード
+let lastSearchTag = "";       // 直近の検索タグ
 
 // ===== トースト通知 =====
 let toastTimer = null;
@@ -2539,6 +2605,7 @@ function refreshCalendarView() {
   updateSelectedInfo(selectedDateKey);
   updateMemoEditor(selectedDateKey);
   renderMonthlySummary();
+  renderGlobalSummary();   // ★ ここで全期間の合計も描画
   updateTodaySummary();
   updateRokuyoHeader();
 }
@@ -2652,7 +2719,17 @@ function ensureExtraUI() {
     parent.appendChild(summary);
   }
 
+ // ★ 追加: 全期間マーク合計パネル
+  let globalSummary = document.getElementById("globalSummary");
+  if (!globalSummary) {
+    globalSummary = document.createElement("div");
+    globalSummary.id = "globalSummary";
+    globalSummary.className = "monthly-summary";
+    parent.appendChild(globalSummary);
+  }
+
   let selectedInfo = document.getElementById("selectedInfo");
+
   if (!selectedInfo) {
     selectedInfo = document.createElement("div");
     selectedInfo.id = "selectedInfo"; selectedInfo.className = "selected-info";
@@ -3023,6 +3100,9 @@ function updateCell(key, cell = null) {
 // ===== タップ/長押し/スワイプ処理 =====
 function attachPressHandlers(cell, key) {
   let pressTimer = null;
+  let startX = 0;
+  let startY = 0;
+  let moved = false;  // ← 指が動いたかどうか
 
   cell.addEventListener("pointerdown", (ev) => {
     if (cell.classList.contains("empty")) return;
@@ -3031,30 +3111,68 @@ function attachPressHandlers(cell, key) {
       return;
     }
 
+    // 右クリック or Ctrl + クリック → そのまま長押し扱い
     if (ev.button === 2 || ev.ctrlKey) {
       ev.preventDefault();
       handleLongPress(cell, key);
       return;
     }
 
+    // 開始位置を記録して「まだ動いてない」状態に
+    startX = ev.clientX;
+    startY = ev.clientY;
+    moved = false;
     longPressTriggered = false;
+
     pressTimer = setTimeout(() => {
       longPressTriggered = true;
       handleLongPress(cell, key);
     }, LONG_PRESS_MS);
   });
 
+  // 指（ポインタ）が動いたら「スワイプorスクロール」と判定
+  cell.addEventListener("pointermove", (ev) => {
+    if (!pressTimer) return; // 既に長押し発火 or キャンセル済み
+
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+
+    // しきい値はお好みで（10pxくらいで十分）
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      moved = true;
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  });
+
   cell.addEventListener("pointerup", (ev) => {
-    clearTimeout(pressTimer);
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+
     if (!currentUserId || cell.classList.contains("empty")) return;
+
+    // 右クリック・長押しのあと → シングルタップ扱いしない
     if (ev.button === 2 || longPressTriggered) return;
 
+    // ここがポイント：動いていたらタップ扱いにしない
+    if (moved) return;
+
+    // ほとんど動いてなかったときだけ「タップ」扱いでマーク切り替え
     handleSingleTap(cell, key);
   });
 
-  cell.addEventListener("pointercancel", () => clearTimeout(pressTimer));
+  cell.addEventListener("pointercancel", () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  });
+
   cell.addEventListener("contextmenu", e => e.preventDefault());
 }
+
 
 function handleSingleTap(cell, key) {
   setSelectedDate(key);
@@ -3088,6 +3206,7 @@ function toggleMainMark(key, cell) {
   saveUserStateToCloud();
   updateCell(key, cell);
   renderMonthlySummary();
+　renderGlobalSummary();
   updateTodaySummary();
 }
 
@@ -3181,6 +3300,7 @@ markMenu.addEventListener("click", (e) => {
   saveUserStateToCloud();
   updateCell(key);
   renderMonthlySummary();
+　renderGlobalSummary();
   updateTodaySummary();
   markMenu.style.display = "none";
 });
@@ -3225,7 +3345,6 @@ function renderMonthlySummary() {
       counts[markId] = (counts[markId] || 0) + 1;
     }
   });
-  
   const streak = calculateMainMarkStreak();
   const streakHtml = streak > 0 
     ? `<span class="streak-info">現在🔥<span>${streak}</span>日連続!</span>` 
@@ -3279,6 +3398,70 @@ function renderMonthlySummary() {
   });
   container.appendChild(list);
 }
+function renderGlobalSummary() {
+  const container = document.getElementById("globalSummary");
+  if (!container) return;
+
+  if (!currentUserId) {
+    container.style.display = "none";
+    return;
+  }
+
+  container.style.display = "block";
+
+  // 全期間のマークを集計
+  const counts = {};
+  Object.values(marks).forEach(markId => {
+    if (!markDefinitions[markId]) return;
+    counts[markId] = (counts[markId] || 0) + 1;
+  });
+
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+
+  container.innerHTML = `
+    <div class="monthly-summary-header">
+      <h3 class="monthly-summary-title">全期間のマーク合計</h3>
+      <span style="font-size:0.8rem; color:var(--text-muted);">
+        合計 ${total} 日
+      </span>
+    </div>
+  `;
+
+  if (total === 0) {
+    container.innerHTML += `<p class="hint">まだマークがありません</p>`;
+    return;
+  }
+
+  const list = document.createElement("div");
+  list.className = "monthly-summary-list";
+
+  const sortedIds = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  const max = counts[sortedIds[0]] || 1;
+
+  sortedIds.forEach(id => {
+    const def = markDefinitions[id];
+    if (!def) return;
+    const count = counts[id];
+
+    const row = document.createElement("div");
+    row.className = "monthly-summary-item";
+    const labelText = def.label ? def.label : "";
+
+    row.innerHTML = `
+      <div class="monthly-summary-label">
+        <span class="monthly-summary-icon" style="color:${def.color}">${def.icon}</span>
+        <span>${labelText ? labelText + "：" : ""}${count}日</span>
+      </div>
+      <div class="monthly-summary-bar-wrap">
+        <div class="monthly-summary-bar"
+             style="width:${(count / max) * 100}%; background:${def.color}"></div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  container.appendChild(list);
+}
 
 function calculateMainMarkStreak() {
   if (!mainMarkId) return 0;
@@ -3300,10 +3483,13 @@ function calculateMainMarkStreak() {
 // ===== 年間アクティビティ（棒グラフ）描画 =====
 function renderHeatmap() {
   const list = document.getElementById("heatmapGrid");
+  const yearSelect = document.getElementById("heatmapYearSelect");
   if (!list) return;
+
   list.innerHTML = "";
 
   if (!currentUserId) {
+    if (yearSelect) yearSelect.innerHTML = "";
     const p = document.createElement("p");
     p.className = "hint";
     p.textContent = "ログインすると年間グラフが表示されます。";
@@ -3311,258 +3497,433 @@ function renderHeatmap() {
     return;
   }
 
-  const now = new Date();
-  const ymList = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    ymList.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
-  }
-
-  const monthlyCounts = {};
+  // ===== 利用可能な年一覧を作成 =====
+  const yearSet = new Set();
   Object.keys(marks).forEach(key => {
-    const [y, m] = key.split("-").map(Number);
-    const id = `${y}-${m}`;
-    monthlyCounts[id] = (monthlyCounts[id] || 0) + 1;
+    const [y] = key.split("-").map(Number);
+    if (y && !Number.isNaN(y)) yearSet.add(y);
   });
 
-  const counts = ymList.map(ym => monthlyCounts[`${ym.year}-${ym.month}`] || 0);
-  const max = Math.max(...counts, 0);
+  let years = Array.from(yearSet).sort((a, b) => a - b);
+  if (!years.length) {
+    years = [new Date().getFullYear()];
+  }
 
-  if (max === 0) {
+  // ===== 年セレクトの中身を更新 =====
+  if (yearSelect) {
+    const prev = parseInt(yearSelect.value, 10);
+    yearSelect.innerHTML = "";
+
+    years.forEach(y => {
+      const opt = document.createElement("option");
+      opt.value = String(y);
+      opt.textContent = `${y}年`;
+      yearSelect.appendChild(opt);
+    });
+
+    if (!Number.isNaN(prev) && years.includes(prev)) {
+      currentHeatmapYear = prev;
+    } else if (!currentHeatmapYear || !years.includes(currentHeatmapYear)) {
+      currentHeatmapYear = years[years.length - 1]; // 一番新しい年
+    }
+
+    yearSelect.value = String(currentHeatmapYear);
+  } else {
+    if (!currentHeatmapYear || !years.includes(currentHeatmapYear)) {
+      currentHeatmapYear = years[years.length - 1];
+    }
+  }
+
+  const targetYear = currentHeatmapYear;
+
+  // ===== 対象年の「月×マーク」集計 =====
+  const perMonth = {};
+  for (let m = 1; m <= 12; m++) perMonth[m] = {};
+
+  Object.entries(marks).forEach(([key, markId]) => {
+    const [y, m, d] = key.split("-").map(Number);
+    if (y !== targetYear) return;
+    if (!markDefinitions[markId]) return;
+    if (!perMonth[m]) perMonth[m] = {};
+    const bucket = perMonth[m];
+    bucket[markId] = (bucket[markId] || 0) + 1;
+  });
+
+  // 各月の合計と最大値
+  const totals = {};
+  let maxTotal = 0;
+  for (let m = 1; m <= 12; m++) {
+    const counts = perMonth[m];
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    totals[m] = total;
+    if (total > maxTotal) maxTotal = total;
+  }
+
+  if (maxTotal === 0) {
     const p = document.createElement("p");
     p.className = "hint";
-    p.textContent = "まだマークがついた日がありません。";
+    p.textContent = "まだマークがついた月がありません。";
     list.appendChild(p);
     return;
   }
 
-  ymList.forEach((ym, index) => {
-    const count = counts[index];
+  // ===== 月ごとに行を描画 =====
+  for (let m = 1; m <= 12; m++) {
+    const monthCounts = perMonth[m];
+    const markIds = Object.keys(monthCounts);
+    const total = totals[m];
+
     const row = document.createElement("div");
     row.className = "year-summary-item";
-    if (count === max && max > 0) row.classList.add("year-summary-max");
+    if (total === maxTotal && maxTotal > 0) {
+      row.classList.add("year-summary-max");
+    }
 
     const label = document.createElement("span");
     label.className = "year-summary-label";
-    label.textContent = `${ym.month}月`;
-    label.title = `${ym.year}年${ym.month}月`;
+    label.textContent = `${m}月`;
+    label.title = `${targetYear}年${m}月`;
     row.appendChild(label);
 
+    // 棒グラフ本体
     const barWrap = document.createElement("div");
     barWrap.className = "year-summary-bar-wrap";
+
     const bar = document.createElement("div");
     bar.className = "year-summary-bar";
-    bar.style.width = max > 0 ? `${(count / max) * 100}%` : "0%";
+
+    if (total > 0 && markIds.length) {
+      // その月の中では、カウント多い順に並べる
+      markIds.sort((a, b) => (monthCounts[b] || 0) - (monthCounts[a] || 0));
+
+      markIds.forEach((id, index) => {
+        const count = monthCounts[id];
+        const def = markDefinitions[id];
+        const seg = document.createElement("div");
+        seg.className = "year-summary-bar-seg";
+        seg.style.width = `${(count / maxTotal) * 100}%`;
+        seg.style.backgroundColor = def ? def.color : "#9ca3af";
+
+        // 同じ色でも区切りたいので黒線で仕切る
+        if (index !== markIds.length - 1) {
+          seg.style.borderRight = "1px solid #000000";
+        }
+
+        bar.appendChild(seg);
+      });
+    }
+
     barWrap.appendChild(bar);
     row.appendChild(barWrap);
 
     const num = document.createElement("span");
     num.className = "year-summary-count";
-    num.textContent = count === max ? `${count}日 🏆` : `${count}日`;
+    num.textContent = total === maxTotal ? `${total}日 🏆` : `${total}日`;
     row.appendChild(num);
 
+    // その月で使われたマークアイコン一覧
+    if (markIds.length) {
+      const iconRow = document.createElement("div");
+      iconRow.className = "year-summary-mark-icons";
+
+      markIds.forEach(id => {
+        const def = markDefinitions[id];
+        if (!def) return;
+        const chip = document.createElement("span");
+        chip.className = "heatmap-mark-chip";
+        chip.textContent = def.icon;
+        chip.style.color = def.color;
+        if (def.label) chip.title = def.label;
+        iconRow.appendChild(chip);
+      });
+
+      row.appendChild(iconRow);
+    }
+
     list.appendChild(row);
+  }
+}
+
+
+// ===== 新機能：メモ検索 =====
+
+// 全日付キーを取得（メモだけの日／タグだけの日どちらも含む）
+function collectAllUsedDateKeys() {
+  const set = new Set();
+  Object.keys(dayMemos || {}).forEach(k => set.add(k));
+  Object.keys(dayMemoTags || {}).forEach(k => set.add(k));
+  return Array.from(set);
+}
+
+// 検索結果1件の描画（共通）
+function createSearchResultItem(hit) {
+  const div = document.createElement("div");
+  div.className = "search-result-item";
+
+  const [y, m, d] = hit.key.split("-").map(Number);
+  const dw = getDayName(y, m, d);
+
+  const dateDiv = document.createElement("div");
+  dateDiv.className = "result-date";
+  dateDiv.textContent = `${y}年${m}月${d}日(${dw})`;
+  div.appendChild(dateDiv);
+
+  const snippetDiv = document.createElement("div");
+  snippetDiv.className = "result-snippet";
+  const rawText = hit.text || "";
+
+  // キーワードハイライト（あれば）
+  if (lastSearchKeyword) {
+    const regex = new RegExp(
+      lastSearchKeyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "g"
+    );
+    const safe = rawText
+      ? rawText.replace(regex, m => `<em>${m}</em>`)
+      : "（メモなし）";
+    snippetDiv.innerHTML = safe;
+  } else {
+    snippetDiv.textContent = rawText || "（メモなし）";
+  }
+  div.appendChild(snippetDiv);
+
+  // タグ表示
+  if (hit.tags && hit.tags.length) {
+    const tagsDiv = document.createElement("div");
+    tagsDiv.className = "result-tags";
+    tagsDiv.textContent = hit.tags.map(t => `#${t}`).join(" ");
+    div.appendChild(tagsDiv);
+  }
+
+  // クリックでその日にジャンプ
+  div.addEventListener("click", () => {
+    const [yy, mm, dd] = hit.key.split("-").map(Number);
+    currentYear = yy;
+    currentMonth = mm - 1;
+    renderCalendar();
+    setSelectedDate(hit.key);
+    closeAllSubViews();
+  });
+
+  return div;
+}
+
+// 検索結果を一定件数ずつ描画
+function renderMoreSearchResults() {
+  const container = document.getElementById("searchResults");
+  if (!container) return;
+
+  const start = currentSearchRendered;
+  const end = Math.min(currentSearchRendered + SEARCH_PAGE_SIZE, currentSearchHits.length);
+
+  // 古い「もっと見る」ボタンがあれば一旦消す
+  const oldMore = document.getElementById("searchMoreBtn");
+  if (oldMore) oldMore.remove();
+
+  for (let i = start; i < end; i++) {
+    container.appendChild(createSearchResultItem(currentSearchHits[i]));
+  }
+  currentSearchRendered = end;
+
+  // まだ残りがあれば「もっと見る」ボタンを付ける
+  if (currentSearchRendered < currentSearchHits.length) {
+    const moreBtn = document.createElement("button");
+    moreBtn.id = "searchMoreBtn";
+    moreBtn.type = "button";
+    moreBtn.textContent = `もっと見る（残り ${currentSearchHits.length - currentSearchRendered}件）`;
+    moreBtn.style.display = "block";
+    moreBtn.style.width = "100%";
+    moreBtn.style.margin = "8px 0";
+    moreBtn.addEventListener("click", renderMoreSearchResults);
+    container.appendChild(moreBtn);
+  }
+}
+
+// 新しい検索開始
+function startNewSearch(hits, emptyMessage) {
+  const container = document.getElementById("searchResults");
+  if (!container) return;
+  container.innerHTML = "";
+
+  currentSearchHits = hits;
+  currentSearchRendered = 0;
+
+  if (!hits.length) {
+    container.innerHTML = `<p class="hint">${emptyMessage || "見つかりませんでした。"}</p>`;
+    return;
+  }
+
+  renderMoreSearchResults();
+}
+
+// 文字列からタグ配列に変換（カンマ or 空白区切り）
+function parseTagsFromInput(str) {
+  if (!str) return [];
+  return str
+    .split(/[,\s]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+// その日のタグを配列で取得（互換性用）
+function getTagsForDate(key) {
+  const raw = dayMemoTags[key];
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    return parseTagsFromInput(raw);
+  }
+  return [];
+}
+
+// メモ欄の下に、その日のタグチップを表示
+function renderMemoTagChipsForDate(key) {
+  const chipArea = document.getElementById("memoTagChips");
+  if (!chipArea) return;
+
+  chipArea.innerHTML = "";
+  const tags = getTagsForDate(key);
+  if (!tags.length) return;
+
+  tags.forEach(tag => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "tag-chip";
+    chip.textContent = "#" + tag;
+    chip.addEventListener("click", () => {
+      const tagInput = document.getElementById("tagSearchInput");
+      if (tagInput) tagInput.value = tag;
+      searchMemosByTag(tag);
+      showView("searchView");
+    });
+    chipArea.appendChild(chip);
   });
 }
 
-// ===== 新機能：メモ検索 =====
-function searchMemos(keyword) {
-    const resultsContainer = document.getElementById("searchResults");
-    resultsContainer.innerHTML = "";
-    if (!keyword) {
-        resultsContainer.innerHTML = '<p class="hint">キーワードを入力してください。</p>';
-        return;
-    }
+// キーワード＋タグ（AND検索も対応）
+// 例：キーワードだけ / タグだけ両方空 → エラー表示
+//     キーワード＋タグ両方入力 → メモ本文にキーワードを含み、かつタグを持つ日だけヒット
+function searchMemos(keyword, tag) {
+  const resultsContainer = document.getElementById("searchResults");
+  if (!resultsContainer) return;
 
-    const hits = [];
-    Object.entries(dayMemos).forEach(([key, text]) => {
-        if (text.includes(keyword)) {
-            hits.push({ key, text });
-        }
-    });
+  const kw = (keyword || "").trim();
+  const tg = (tag || "").trim();
 
-    if (hits.length === 0) {
-        resultsContainer.innerHTML = '<p class="hint">見つかりませんでした。</p>';
-        return;
-    }
+  lastSearchKeyword = kw;
+  lastSearchTag = tg;
 
-    // 日付の新しい順にソート
-    hits.sort((a, b) => b.key.localeCompare(a.key));
+  if (!kw && !tg) {
+    resultsContainer.innerHTML = '<p class="hint">キーワードかタグを入力してください。</p>';
+    currentSearchHits = [];
+    currentSearchRendered = 0;
+    return;
+  }
 
-    hits.forEach(hit => {
-        const div = document.createElement("div");
-        div.className = "search-result-item";
+  const keys = collectAllUsedDateKeys();
+  const hits = [];
 
-        const dateDiv = document.createElement("div");
-        dateDiv.className = "result-date";
-        dateDiv.textContent = hit.key;
-        div.appendChild(dateDiv);
+  keys.forEach(key => {
+    const text = dayMemos[key] || "";
+    const tags = getTagsForDate(key);
+    if (!text && !tags.length) return; // 本当に何もない日はスキップ
 
-        const snippetDiv = document.createElement("div");
-        snippetDiv.className = "result-snippet";
+    if (kw && !text.includes(kw)) return;
+    if (tg && !tags.includes(tg)) return;
 
-        // キーワードをハイライト（正規表現エスケープ）
-        const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
-        const safe = hit.text.replace(regex, m => `<em>${m}</em>`);
-        snippetDiv.innerHTML = safe;
-        div.appendChild(snippetDiv);
+    hits.push({ key, text, tags });
+  });
 
-        const tags = getTagsForDate(hit.key);
-        if (tags.length) {
-            const tagsDiv = document.createElement("div");
-            tagsDiv.className = "result-tags";
-            tagsDiv.textContent = tags.map(t => `#${t}`).join(" ");
-            div.appendChild(tagsDiv);
-        }
+  hits.sort((a, b) => b.key.localeCompare(a.key)); // 新しい日付順
 
-        div.addEventListener("click", () => {
-            // その日付のカレンダーへジャンプ
-            const [y, m, d] = hit.key.split("-").map(Number);
-            currentYear = y; currentMonth = m - 1;
-            renderCalendar();
-            setSelectedDate(hit.key);
-            closeAllSubViews();
-        });
-        resultsContainer.appendChild(div);
-    });
+  startNewSearch(hits, "見つかりませんでした。");
 }
-// タグで検索
+
+// タグで検索（タグだけ条件）
+// メモがなくてもタグが付いていればヒット
 function searchMemosByTag(tag) {
-    const resultsContainer = document.getElementById("searchResults");
-    resultsContainer.innerHTML = "";
+  const resultsContainer = document.getElementById("searchResults");
+  if (!resultsContainer) return;
 
-    const t = tag.trim();
-    if (!t) {
-        resultsContainer.innerHTML = '<p class="hint">タグを入力してください。</p>';
-        return;
-    }
+  const t = (tag || "").trim();
+  lastSearchKeyword = "";
+  lastSearchTag = t;
 
-    const hits = [];
-    Object.entries(dayMemos).forEach(([key, text]) => {
-        const tags = getTagsForDate(key);
-        if (tags.includes(t)) {
-            hits.push({ key, text });
-        }
-    });
+  if (!t) {
+    resultsContainer.innerHTML = '<p class="hint">タグを入力してください。</p>';
+    currentSearchHits = [];
+    currentSearchRendered = 0;
+    return;
+  }
 
-    if (!hits.length) {
-        resultsContainer.innerHTML = `<p class="hint">「${t}」のタグが付いたメモはありません。</p>`;
-        return;
-    }
+  const keys = collectAllUsedDateKeys();
+  const hits = [];
 
-    hits.sort((a, b) => b.key.localeCompare(a.key));
+  keys.forEach(key => {
+    const text = dayMemos[key] || "";
+    const tags = getTagsForDate(key);
+    if (!tags.length) return;
+    if (!tags.includes(t)) return;
+    hits.push({ key, text, tags });
+  });
 
-    hits.forEach(hit => {
-        const div = document.createElement("div");
-        div.className = "search-result-item";
+  hits.sort((a, b) => b.key.localeCompare(a.key));
 
-        const dateDiv = document.createElement("div");
-        dateDiv.className = "result-date";
-        dateDiv.textContent = hit.key;
-        div.appendChild(dateDiv);
-
-        const snippetDiv = document.createElement("div");
-        snippetDiv.className = "result-snippet";
-        snippetDiv.textContent = hit.text;
-        div.appendChild(snippetDiv);
-
-        const tagsDiv = document.createElement("div");
-        tagsDiv.className = "result-tags";
-        tagsDiv.textContent = getTagsForDate(hit.key).map(s => `#${s}`).join(" ");
-        div.appendChild(tagsDiv);
-
-        div.addEventListener("click", () => {
-            const [y, m, d] = hit.key.split("-").map(Number);
-            currentYear = y; currentMonth = m - 1;
-            renderCalendar();
-            setSelectedDate(hit.key);
-            closeAllSubViews();
-        });
-
-        resultsContainer.appendChild(div);
-    });
+  startNewSearch(hits, `「${t}」のタグが付いたメモはありません。`);
 }
 
-// メモがある日を全部一覧
+// メモがある日を全部一覧（タグだけの日も含める）
 function listAllMemoDays() {
-    const resultsContainer = document.getElementById("searchResults");
-    resultsContainer.innerHTML = "";
+  const keys = collectAllUsedDateKeys();
+  const hits = [];
 
-    const keys = Object.keys(dayMemos);
-    if (!keys.length) {
-        resultsContainer.innerHTML = '<p class="hint">まだメモがある日はありません。</p>';
-        return;
-    }
+  keys.forEach(key => {
+    const text = dayMemos[key] || "";
+    const tags = getTagsForDate(key);
+    if (!text && !tags.length) return;
+    hits.push({ key, text, tags });
+  });
 
-    keys.sort().reverse();
+  hits.sort((a, b) => b.key.localeCompare(a.key));
 
-    keys.forEach(key => {
-        const text = dayMemos[key] || "";
-        const div = document.createElement("div");
-        div.className = "search-result-item";
-
-        const dateDiv = document.createElement("div");
-        dateDiv.className = "result-date";
-        dateDiv.textContent = key;
-        div.appendChild(dateDiv);
-
-        const snippetDiv = document.createElement("div");
-        snippetDiv.className = "result-snippet";
-        snippetDiv.textContent = text;
-        div.appendChild(snippetDiv);
-
-        const tags = getTagsForDate(key);
-        if (tags.length) {
-            const tagsDiv = document.createElement("div");
-            tagsDiv.className = "result-tags";
-            tagsDiv.textContent = tags.map(s => `#${s}`).join(" ");
-            div.appendChild(tagsDiv);
-        }
-
-        div.addEventListener("click", () => {
-            const [y, m, d] = key.split("-").map(Number);
-            currentYear = y; currentMonth = m - 1;
-            renderCalendar();
-            setSelectedDate(key);
-            closeAllSubViews();
-        });
-
-        resultsContainer.appendChild(div);
-    });
+  lastSearchKeyword = "";
+  lastSearchTag = "";
+  startNewSearch(hits, "まだメモやタグがある日はありません。");
 }
 
 // タグ候補（全日から集計）
 function renderTagSuggestions() {
-    const list = document.getElementById("tagSuggestionList");
-    if (!list) return;
+  const list = document.getElementById("tagSuggestionList");
+  if (!list) return;
 
-    list.innerHTML = "";
-    const set = new Set();
+  list.innerHTML = "";
+  const set = new Set();
 
-    Object.keys(dayMemoTags).forEach(key => {
-        getTagsForDate(key).forEach(t => set.add(t));
+  Object.keys(dayMemoTags).forEach(key => {
+    getTagsForDate(key).forEach(t => set.add(t));
+  });
+
+  const allTags = Array.from(set).sort((a, b) => a.localeCompare(b, "ja"));
+
+  if (!allTags.length) {
+    list.innerHTML = '<span class="hint" style="font-size:0.75rem;">まだタグはありません。メモを保存すると使えるようになります。</span>';
+    return;
+  }
+
+  allTags.forEach(tag => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "tag-chip";
+    chip.textContent = "#" + tag;
+    chip.addEventListener("click", () => {
+      const tagInput = document.getElementById("tagSearchInput");
+      if (tagInput) tagInput.value = tag;
+      searchMemosByTag(tag);
     });
-
-    const allTags = Array.from(set).sort((a, b) => a.localeCompare(b, "ja"));
-
-    if (!allTags.length) {
-        list.innerHTML = '<span class="hint" style="font-size:0.75rem;">まだタグはありません。メモを保存すると使えるようになります。</span>';
-        return;
-    }
-
-    allTags.forEach(tag => {
-        const chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "tag-chip";
-        chip.textContent = "#" + tag;
-        chip.addEventListener("click", () => {
-            const tagInput = document.getElementById("tagSearchInput");
-            if (tagInput) tagInput.value = tag;
-            searchMemosByTag(tag);
-        });
-        list.appendChild(chip);
-    });
+    list.appendChild(chip);
+  });
 }
+
 
 
 // ===== データバックアップ（JSONダウンロード） =====
@@ -3664,6 +4025,7 @@ function renderMarkedList() {
   const container = document.getElementById("markedListContainer");
   const filterSel = document.getElementById("markedFilterSelect");
   if (!container) return;
+
   container.innerHTML = "";
 
   if (!currentUserId) {
@@ -3672,7 +4034,38 @@ function renderMarkedList() {
     return;
   }
 
-  // フィルターセレクトの中身を更新
+  // === 表示範囲トグル（今月 / 全期間） ===
+  const rangeWrap = document.createElement("div");
+  rangeWrap.className = "marked-range-toggle";
+  rangeWrap.innerHTML = `
+    <div style="margin-bottom:4px; font-size:0.8rem; color:var(--text-muted);">
+      表示範囲
+    </div>
+    <div>
+      <button type="button"
+              class="tag-chip${markedListRange === "month" ? " active" : ""}"
+              data-range="month">
+        今月のみ
+      </button>
+      <button type="button"
+              class="tag-chip${markedListRange === "all" ? " active" : ""}"
+              data-range="all">
+        全期間
+      </button>
+    </div>
+  `;
+  rangeWrap.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-range]");
+    if (!btn) return;
+    const newRange = btn.dataset.range;
+    if (!newRange || newRange === markedListRange) return;
+    markedListRange = newRange;
+    // 範囲が変わったら一覧を描画し直す
+    renderMarkedList();
+  });
+  container.appendChild(rangeWrap);
+
+  // === マーク種別フィルターの中身を更新 ===
   if (filterSel) {
     const prevVal = filterSel.value || "";
     filterSel.innerHTML = "";
@@ -3686,7 +4079,8 @@ function renderMarkedList() {
       const optMain = document.createElement("option");
       optMain.value = "__main";
       const defMain = markDefinitions[mainMarkId];
-      optMain.textContent = `メイン: ${defMain.icon}${defMain.label ? " " + defMain.label : ""}`;
+      optMain.textContent =
+        `メイン: ${defMain.icon}${defMain.label ? " " + defMain.label : ""}`;
       filterSel.appendChild(optMain);
     }
 
@@ -3702,6 +4096,7 @@ function renderMarkedList() {
     filterSel.value = exists ? prevVal : "";
   }
 
+  // === マーク種別フィルターの条件 ===
   let filterValue = "";
   if (filterSel) filterValue = filterSel.value || "";
   let filterMarkId = null;
@@ -3714,10 +4109,16 @@ function renderMarkedList() {
     filterMarkId = filterValue;
   }
 
+  // === 一覧データ作成 ===
   const list = [];
   Object.entries(marks).forEach(([key, markId]) => {
     const [y, m, d] = key.split("-").map(Number);
-    if (y !== currentYear || m !== currentMonth + 1) return;
+
+    // 表示範囲フィルター
+    if (markedListRange === "month") {
+      if (y !== currentYear || m !== currentMonth + 1) return;
+    }
+    // "all" のときは年・月で絞らない（全期間）
 
     if (onlyMain && markId !== mainMarkId) return;
     if (!onlyMain && filterMarkId && markId !== filterMarkId) return;
@@ -3726,20 +4127,33 @@ function renderMarkedList() {
   });
 
   if (!list.length) {
-    container.innerHTML = '<p class="hint">条件に合うマーク付きの日がありません。</p>';
+    const msg = document.createElement("p");
+    msg.className = "hint";
+    msg.textContent = "条件に合うマーク付きの日がありません。";
+    container.appendChild(msg);
     return;
   }
 
-  list.sort((a, b) => a.key.localeCompare(b.key));
+  // 日付順（古い→新しい）
+  // 新しい順が良ければ b.key.localeCompare(a.key) にしてね
+  list.sort((a, b) => b.key.localeCompare(a.key));
 
+  // === 表示 ===
   list.forEach(item => {
     const div = document.createElement("div");
     div.className = "search-result-item";
+
     const [y, m, d] = item.key.split("-").map(Number);
     const dw = getDayName(y, m, d);
-    const def = markDefinitions[item.markId] || { icon: "", color: "#111827", label: "" };
+    const def = markDefinitions[item.markId] || {
+      icon: "",
+      color: "#111827",
+      label: ""
+    };
     const labelText = def.label ? def.label : "";
-    const memoText = item.memo ? item.memo.replace(/\s+/g, " ").slice(0, 40) : "";
+    const memoText = item.memo
+      ? item.memo.replace(/\s+/g, " ").slice(0, 40)
+      : "";
 
     div.innerHTML = `
       <div class="result-date">${y}年${m}月${d}日(${dw})</div>
@@ -3748,12 +4162,16 @@ function renderMarkedList() {
         ${labelText ? labelText + "　" : ""}${memoText}
       </div>
     `;
+
+    // クリックでその日にジャンプ
     div.addEventListener("click", () => {
-      currentYear = y; currentMonth = m - 1;
+      currentYear = y;
+      currentMonth = m - 1;
       renderCalendar();
       setSelectedDate(item.key);
       closeAllSubViews();
     });
+
     container.appendChild(div);
   });
 }
@@ -3826,19 +4244,24 @@ document.querySelectorAll(".close-subview-btn").forEach(btn => {
 document.getElementById("changeSaveBtn").addEventListener("click", handleChangeSave);
 document.getElementById("deleteExecuteBtn").addEventListener("click", handleDeleteExecute);
 
+// キーワード＋（必要なら）タグで検索
 document.getElementById("searchExecuteBtn").addEventListener("click", () => { 
   const keyword = document.getElementById("searchInput").value.trim(); 
-  searchMemos(keyword); 
+  const tagInput = document.getElementById("tagSearchInput");
+  const tag = tagInput ? tagInput.value.trim() : "";
+  searchMemos(keyword, tag); 
 });
+
 document.getElementById("searchInput").addEventListener("keypress", (e) => { 
   if (e.key === "Enter") document.getElementById("searchExecuteBtn").click(); 
 });
+
 const tagSearchBtn = document.getElementById("tagSearchBtn");
 if (tagSearchBtn) {
-    tagSearchBtn.addEventListener("click", () => {
-        const tag = document.getElementById("tagSearchInput").value.trim();
-        searchMemosByTag(tag);
-    });
+  tagSearchBtn.addEventListener("click", () => {
+    const tag = document.getElementById("tagSearchInput").value.trim();
+    searchMemosByTag(tag);
+  });
 }
 
 const tagSearchInput = document.getElementById("tagSearchInput");
@@ -3855,6 +4278,16 @@ if (listAllMemoDaysBtn) {
 const markedFilterSelect = document.getElementById("markedFilterSelect");
 if (markedFilterSelect) {
   markedFilterSelect.addEventListener("change", renderMarkedList);
+}
+const heatmapYearSelect = document.getElementById("heatmapYearSelect");
+if (heatmapYearSelect) {
+  heatmapYearSelect.addEventListener("change", () => {
+    const y = parseInt(heatmapYearSelect.value, 10);
+    if (!Number.isNaN(y)) {
+      currentHeatmapYear = y;
+      renderHeatmap();
+    }
+  });
 }
 
 // ===== 既存のUIイベント設定 =====
@@ -3947,7 +4380,10 @@ function updateSelectColors() {
     sel.style.color = def ? def.color : "inherit";
   });
 }
-document.querySelector(".mark-settings-grid").addEventListener("change", updateSelectColors);
+const markSettingsGrid = document.querySelector(".mark-settings-grid");
+if (markSettingsGrid) {
+  markSettingsGrid.addEventListener("change", updateSelectColors);
+}
 const accentInput = document.getElementById("accentColorInput");
 const accentResetBtn = document.getElementById("accentResetBtn");
 if (accentInput) {

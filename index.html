@@ -2061,10 +2061,17 @@ let currentSearchRendered = 0; // 何件まで描画済みか
 let lastSearchKeyword = "";   // ハイライト用の直近キーワード
 let lastSearchTag = "";       // 直近の検索タグ
 
+// ===== DOM要素キャッシュ =====
+const _domCache = {};
+function getEl(id) {
+  if (!_domCache[id]) _domCache[id] = document.getElementById(id);
+  return _domCache[id];
+}
+
 // ===== トースト通知 =====
 let toastTimer = null;
 function showToast(message, duration = 2500) {
-  const el = document.getElementById("toast");
+  const el = getEl("toast");
   if (!el) return;
   el.textContent = message;
   el.classList.add("show");
@@ -2388,8 +2395,16 @@ function migrateLegacyMarks() {
 
 
 
+// ===== デバウンス付き保存（連続操作時のAPI呼び出し削減） =====
+let _saveDebounceTimer = null;
+function debouncedSave(delay = 1000) {
+  if (_saveDebounceTimer) clearTimeout(_saveDebounceTimer);
+  _saveDebounceTimer = setTimeout(saveUserStateToCloud, delay);
+}
+
 // ===== 保存（追加も削除も確実に反映） =====
 function saveUserStateToCloud() {
+  if (_saveDebounceTimer) { clearTimeout(_saveDebounceTimer); _saveDebounceTimer = null; }
   if (!currentUserId || !currentPin) return;
 
   const docRef = db.collection("users").doc(currentUserId);
@@ -2989,25 +3004,28 @@ function dateKey(y, m, d) {
 }
 
 function renderCalendar() {
-  const grid = document.getElementById("calendarGrid");
+  const grid = getEl("calendarGrid");
   grid.innerHTML = "";
+
+  const fragment = document.createDocumentFragment();
 
   const dowNames = ["日","月","火","水","木","金","土"];
   dowNames.forEach((name, i) => {
     const el = document.createElement("div");
     el.textContent = name; el.className = "dow";
     if (i === 0) el.classList.add("sun"); else if (i === 6) el.classList.add("sat");
-    grid.appendChild(el);
+    fragment.appendChild(el);
   });
 
-  const firstDay = new Date(currentYear, currentMonth, 1);
-  const firstDow = firstDay.getDay();
+  const firstDow = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const today = new Date();
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
 
   for (let i = 0; i < firstDow; i++) {
-    grid.appendChild(document.createElement("div")).className = "day empty";
+    const empty = document.createElement("div");
+    empty.className = "day empty";
+    fragment.appendChild(empty);
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -3026,7 +3044,7 @@ function renderCalendar() {
     const dow = (firstDow + day - 1) % 7;
     if (dow === 0) cell.classList.add("sun"); else if (dow === 6) cell.classList.add("sat");
 
-    const holiday = getHolidayName(currentYear, currentMonth, day, dow);
+    const holiday = getHolidayName(currentYear, currentMonth, day, dow, firstDow);
     if (holiday) {
       cell.classList.add("holiday");
       cell.querySelector(".holiday-label").textContent = holiday;
@@ -3035,18 +3053,19 @@ function renderCalendar() {
     if (key === todayKey) cell.classList.add("today");
 
     updateCell(key, cell);
-    attachPressHandlers(cell, key);
-    grid.appendChild(cell);
+    fragment.appendChild(cell);
   }
 
-  document.getElementById("monthLabel").textContent = `${currentYear}年 ${currentMonth + 1}月`;
+  grid.appendChild(fragment);
+
+  getEl("monthLabel").textContent = `${currentYear}年 ${currentMonth + 1}月`;
 
   const isCurrentMonth = today.getFullYear() === currentYear && today.getMonth() === currentMonth;
-  document.getElementById("todayBtn").classList.toggle("today-active", !isCurrentMonth);
+  getEl("todayBtn").classList.toggle("today-active", !isCurrentMonth);
 }
 
-// 簡易祝日判定
-function getHolidayName(y, m, d, dow) {
+// 簡易祝日判定（firstDow: その月の1日の曜日。renderCalendarから渡される）
+function getHolidayName(y, m, d, dow, firstDow) {
   const month = m + 1;
   if (month === 1 && d === 1) return "元日";
   if (month === 2 && d === 11) return "建国記念";
@@ -3058,16 +3077,15 @@ function getHolidayName(y, m, d, dow) {
   if (month === 11 && d === 3) return "文化の日";
   if (month === 11 && d === 23) return "勤労感謝";
 
-  function isNthMonday(nth) {
-    if (dow !== 1) return false;
-    const firstDay = new Date(y, m, 1).getDay();
-    const firstMondayDay = (9 - firstDay) % 7 || 7;
-    return d === firstMondayDay + (nth - 1) * 7;
+  if (dow === 1) {
+    const fd = firstDow !== undefined ? firstDow : new Date(y, m, 1).getDay();
+    const firstMondayDay = (9 - fd) % 7 || 7;
+    const nthMonday = (d - firstMondayDay) / 7 + 1;
+    if (month === 1 && nthMonday === 2) return "成人の日";
+    if (month === 7 && nthMonday === 3) return "海の日";
+    if (month === 9 && nthMonday === 3) return "敬老の日";
+    if (month === 10 && nthMonday === 2) return "スポーツの日";
   }
-  if (month === 1 && isNthMonday(2)) return "成人の日";
-  if (month === 7 && isNthMonday(3)) return "海の日";
-  if (month === 9 && isNthMonday(3)) return "敬老の日";
-  if (month === 10 && isNthMonday(2)) return "スポーツの日";
 
   return "";
 }
@@ -3097,80 +3115,90 @@ function updateCell(key, cell = null) {
   }
 }
 
-// ===== タップ/長押し/スワイプ処理 =====
-function attachPressHandlers(cell, key) {
-  let pressTimer = null;
-  let startX = 0;
-  let startY = 0;
-  let moved = false;  // ← 指が動いたかどうか
+// ===== タップ/長押し/スワイプ処理（イベント委譲） =====
+let _gridPressTimer = null;
+let _gridStartX = 0;
+let _gridStartY = 0;
+let _gridMoved = false;
+let _gridActiveCell = null;
+let _gridActiveKey = null;
 
-  cell.addEventListener("pointerdown", (ev) => {
-    if (cell.classList.contains("empty")) return;
+function _findDayCell(target) {
+  const cell = target.closest(".day");
+  if (!cell || cell.classList.contains("empty")) return null;
+  return cell;
+}
+
+function setupCalendarGridDelegation() {
+  const grid = getEl("calendarGrid");
+  if (!grid || grid._delegated) return;
+  grid._delegated = true;
+
+  grid.addEventListener("pointerdown", (ev) => {
+    const cell = _findDayCell(ev.target);
+    if (!cell) return;
+    const key = cell.dataset.dateKey;
+
     if (!currentUserId) {
       if (ev.isPrimary) showLoginRequiredHint();
       return;
     }
 
-    // 右クリック or Ctrl + クリック → そのまま長押し扱い
     if (ev.button === 2 || ev.ctrlKey) {
       ev.preventDefault();
       handleLongPress(cell, key);
       return;
     }
 
-    // 開始位置を記録して「まだ動いてない」状態に
-    startX = ev.clientX;
-    startY = ev.clientY;
-    moved = false;
+    _gridActiveCell = cell;
+    _gridActiveKey = key;
+    _gridStartX = ev.clientX;
+    _gridStartY = ev.clientY;
+    _gridMoved = false;
     longPressTriggered = false;
 
-    pressTimer = setTimeout(() => {
+    _gridPressTimer = setTimeout(() => {
       longPressTriggered = true;
-      handleLongPress(cell, key);
+      handleLongPress(_gridActiveCell, _gridActiveKey);
     }, LONG_PRESS_MS);
   });
 
-  // 指（ポインタ）が動いたら「スワイプorスクロール」と判定
-  cell.addEventListener("pointermove", (ev) => {
-    if (!pressTimer) return; // 既に長押し発火 or キャンセル済み
-
-    const dx = ev.clientX - startX;
-    const dy = ev.clientY - startY;
-
-    // しきい値はお好みで（10pxくらいで十分）
+  grid.addEventListener("pointermove", (ev) => {
+    if (!_gridPressTimer) return;
+    const dx = ev.clientX - _gridStartX;
+    const dy = ev.clientY - _gridStartY;
     if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-      moved = true;
-      clearTimeout(pressTimer);
-      pressTimer = null;
+      _gridMoved = true;
+      clearTimeout(_gridPressTimer);
+      _gridPressTimer = null;
     }
   });
 
-  cell.addEventListener("pointerup", (ev) => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      pressTimer = null;
+  grid.addEventListener("pointerup", (ev) => {
+    if (_gridPressTimer) {
+      clearTimeout(_gridPressTimer);
+      _gridPressTimer = null;
     }
 
-    if (!currentUserId || cell.classList.contains("empty")) return;
+    if (!_gridActiveCell || !currentUserId) return;
+    if (ev.button === 2 || longPressTriggered) { _gridActiveCell = null; return; }
+    if (_gridMoved) { _gridActiveCell = null; return; }
 
-    // 右クリック・長押しのあと → シングルタップ扱いしない
-    if (ev.button === 2 || longPressTriggered) return;
-
-    // ここがポイント：動いていたらタップ扱いにしない
-    if (moved) return;
-
-    // ほとんど動いてなかったときだけ「タップ」扱いでマーク切り替え
-    handleSingleTap(cell, key);
+    handleSingleTap(_gridActiveCell, _gridActiveKey);
+    _gridActiveCell = null;
   });
 
-  cell.addEventListener("pointercancel", () => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      pressTimer = null;
+  grid.addEventListener("pointercancel", () => {
+    if (_gridPressTimer) {
+      clearTimeout(_gridPressTimer);
+      _gridPressTimer = null;
     }
+    _gridActiveCell = null;
   });
 
-  cell.addEventListener("contextmenu", e => e.preventDefault());
+  grid.addEventListener("contextmenu", (e) => {
+    if (_findDayCell(e.target)) e.preventDefault();
+  });
 }
 
 
@@ -3203,7 +3231,7 @@ function toggleMainMark(key, cell) {
     void cell.offsetWidth;
     cell.classList.add("mark-bounce");
   }
-  saveUserStateToCloud();
+  debouncedSave();
   updateCell(key, cell);
   renderMonthlySummary();
 　renderGlobalSummary();
@@ -3297,7 +3325,7 @@ markMenu.addEventListener("click", (e) => {
     marks[key] = markId;
     if (!btn.dataset.recent) registerRecentSubMark(markId);
   }
-  saveUserStateToCloud();
+  debouncedSave();
   updateCell(key);
   renderMonthlySummary();
 　renderGlobalSummary();
@@ -3754,50 +3782,6 @@ function startNewSearch(hits, emptyMessage) {
   }
 
   renderMoreSearchResults();
-}
-
-// 文字列からタグ配列に変換（カンマ or 空白区切り）
-function parseTagsFromInput(str) {
-  if (!str) return [];
-  return str
-    .split(/[,\s]+/)
-    .map(s => s.trim())
-    .filter(Boolean);
-}
-
-// その日のタグを配列で取得（互換性用）
-function getTagsForDate(key) {
-  const raw = dayMemoTags[key];
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  if (typeof raw === "string") {
-    return parseTagsFromInput(raw);
-  }
-  return [];
-}
-
-// メモ欄の下に、その日のタグチップを表示
-function renderMemoTagChipsForDate(key) {
-  const chipArea = document.getElementById("memoTagChips");
-  if (!chipArea) return;
-
-  chipArea.innerHTML = "";
-  const tags = getTagsForDate(key);
-  if (!tags.length) return;
-
-  tags.forEach(tag => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "tag-chip";
-    chip.textContent = "#" + tag;
-    chip.addEventListener("click", () => {
-      const tagInput = document.getElementById("tagSearchInput");
-      if (tagInput) tagInput.value = tag;
-      searchMemosByTag(tag);
-      showView("searchView");
-    });
-    chipArea.appendChild(chip);
-  });
 }
 
 // キーワード＋タグ（AND検索も対応）
@@ -4390,7 +4374,7 @@ if (accentInput) {
   accentInput.addEventListener("input", () => {
     accentColor = accentInput.value || "#2563eb";
     applyAccentColor();
-    saveUserStateToCloud();
+    debouncedSave();
   });
 }
 if (accentResetBtn) {
@@ -4483,11 +4467,12 @@ function init() {
   updateModeUI();
   updateLoginStatusUI();
   
+  setupCalendarGridDelegation();
   renderCalendar();
   ensureExtraUI();
   updateRokuyoHeader();
   updateTodaySummary();
-  
+
   setTimeout(tryAutoLoginFromLocal, 500);
 }
 
